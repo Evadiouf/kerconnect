@@ -53,10 +53,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router   = useRouter()
   const { user, isAuthenticated, clearAuth } = useAuthStore()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    if (!isAuthenticated) router.push('/auth/login')
-  }, [isAuthenticated, router])
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    // Attendre que Zustand charge depuis localStorage avant de rediriger
+    if (mounted && !isAuthenticated) router.push('/auth/login')
+  }, [mounted, isAuthenticated, router])
+
+  // Afficher un loader pendant l'hydratation Zustand
+  if (!mounted) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <div className="w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+        <p className="text-gray-500 text-sm">Chargement...</p>
+      </div>
+    </div>
+  )
 
   if (!user) return null
 
