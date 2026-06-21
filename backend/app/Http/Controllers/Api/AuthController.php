@@ -69,12 +69,20 @@ class AuthController extends Controller
         ]);
 
         // Envoyer OTP de vérification
-        $this->generateAndSendOtp($user->email, 'verification');
+        $otp = $this->generateAndSendOtp($user->email, 'verification');
 
-        return response()->json([
+        $response = [
             'message' => 'Compte créé. Vérifiez votre email pour le code OTP.',
             'user'    => $user,
-        ], 201);
+        ];
+
+        // En développement : retourner le code OTP directement
+        if (config('app.env') === 'local') {
+            $response['otp_dev'] = $otp;
+            $response['otp_message'] = 'Mode développement — code OTP visible ici';
+        }
+
+        return response()->json($response, 201);
     }
 
     // ── Vérification OTP
@@ -122,17 +130,21 @@ class AuthController extends Controller
             'type'  => 'required|in:verification,reset_password',
         ]);
 
-        $this->generateAndSendOtp($request->email, $request->type);
+        $otp = $this->generateAndSendOtp($request->email, $request->type);
 
-        return response()->json(['message' => 'Nouveau code OTP envoyé.']);
+        $response = ['message' => 'Nouveau code OTP envoyé.'];
+        if (config('app.env') === 'local') $response['otp_dev'] = $otp;
+        return response()->json($response);
     }
 
     // ── Mot de passe oublié
     public function forgotPassword(Request $request): JsonResponse
     {
         $request->validate(['email' => 'required|email|exists:users,email']);
-        $this->generateAndSendOtp($request->email, 'reset_password');
-        return response()->json(['message' => 'Code OTP envoyé à votre email.']);
+        $otp = $this->generateAndSendOtp($request->email, 'reset_password');
+        $response = ['message' => 'Code OTP envoyé à votre email.'];
+        if (config('app.env') === 'local') $response['otp_dev'] = $otp;
+        return response()->json($response);
     }
 
     // ── Réinitialiser mot de passe
@@ -163,8 +175,8 @@ class AuthController extends Controller
         return response()->json($request->user());
     }
 
-    // ── Générer et envoyer OTP
-    private function generateAndSendOtp(string $email, string $type): void
+    // ── Générer et envoyer OTP (retourne le code pour usage interne)
+    private function generateAndSendOtp(string $email, string $type): string
     {
         $code = str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
 
@@ -177,9 +189,17 @@ class AuthController extends Controller
             'expires_at' => now()->addMinutes(10),
         ]);
 
-        Mail::raw(
-            "Votre code KerConnect : {$code}\n\nCe code expire dans 10 minutes.",
-            fn($msg) => $msg->to($email)->subject('Code de vérification KerConnect')
-        );
+        // Tenter l'envoi email — ne pas bloquer si échec en local
+        try {
+            Mail::raw(
+                "Votre code KerConnect : {$code}\n\nCe code expire dans 10 minutes.",
+                fn($msg) => $msg->to($email)->subject('Code de vérification KerConnect')
+            );
+        } catch (\Exception $e) {
+            // En local sans serveur mail configuré, on continue silencieusement
+            \Log::warning("Email OTP non envoyé pour {$email}: " . $e->getMessage());
+        }
+
+        return $code;
     }
 }
