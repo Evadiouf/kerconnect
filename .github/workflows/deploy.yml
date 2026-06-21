@@ -1,0 +1,119 @@
+name: KerConnect — Deploy to Render
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Tests backend Laravel
+  test-backend:
+    name: Tests Backend (Laravel)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: kerconnect_test
+        ports: ['3306:3306']
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, json, bcmath, pdo_mysql, openssl, curl, zip
+
+      - name: Install dependencies
+        working-directory: backend
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Configure environment
+        working-directory: backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          sed -i 's/DB_CONNECTION=sqlite/DB_CONNECTION=mysql/' .env
+          sed -i 's/#DB_HOST=127.0.0.1/DB_HOST=127.0.0.1/' .env
+          sed -i 's/#DB_DATABASE=laravel/DB_DATABASE=kerconnect_test/' .env
+          sed -i 's/#DB_USERNAME=root/DB_USERNAME=root/' .env
+          sed -i 's/#DB_PASSWORD=/DB_PASSWORD=password/' .env
+
+      - name: Run migrations
+        working-directory: backend
+        run: php artisan migrate --force
+
+      - name: Run tests
+        working-directory: backend
+        run: php artisan test
+
+      - name: Security audit
+        working-directory: backend
+        run: composer audit
+
+  # ── Tests frontend Next.js
+  test-frontend:
+    name: Tests Frontend (Next.js)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: TypeScript check
+        working-directory: frontend
+        run: npx tsc --noEmit
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Build
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: https://kerconnect-api.naratechvision.com/api
+        run: npm run build
+
+      - name: Security audit
+        working-directory: frontend
+        run: npm audit --audit-level=high
+
+  # ── Déploiement (seulement sur main après tests OK)
+  deploy:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Deploy Backend to Render
+        run: |
+          curl -X POST "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
+
+      - name: Deploy Frontend to Render
+        run: |
+          curl -X POST "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK }}" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
+
+      - name: Notify deployment
+        run: |
+          echo "Déploiement KerConnect déclenché sur Render"
+          echo "Backend : kerconnect-api.naratechvision.com"
+          echo "Frontend : kerconnect.naratechvision.com"

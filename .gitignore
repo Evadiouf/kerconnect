@@ -1,0 +1,52 @@
+# Secrets et configuration sensible
+.env
+.env.*
+!.env.example
+!.env.production
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Hawoly — credentials email
+.env.hawoly
+
+# Settings Claude Code (contient des tokens)
+.claude/settings.json
+.claude/settings.local.json
+
+# Ne pas versionner les overrides locaux
+*.local.*
+
+# Backend Laravel
+backend/vendor/
+backend/node_modules/
+backend/storage/app/private/
+backend/storage/logs/
+backend/bootstrap/cache/
+
+# Frontend Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Fichiers temporaires
+*.json.tmp
+C\:*.json
+Home.pdf
+
+# Documents de travail locaux
+KerConnect_Cadrage_Technique_V1.docx
+KerConnect_Cadrage_Technique_V2.docx
+generate_doc.py
+update_doc.py
+
+# Laragon cacert ajouté dans PHP
+backend/cacert.pem

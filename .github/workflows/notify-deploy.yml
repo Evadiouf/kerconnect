@@ -1,0 +1,36 @@
+name: Notification déploiement
+
+on:
+  workflow_run:
+    workflows: ["KerConnect — Deploy to Render"]
+    types: [completed]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USERNAME }}
+          password: ${{ secrets.GMAIL_PASSWORD }}
+          subject: "KerConnect — Déploiement ${{ github.event.workflow_run.conclusion == 'success' && 'réussi ✓' || 'échoué ✗' }}"
+          to: contact@naratechvision.com
+          from: "Hawoly KerConnect <demehawoly@gmail.com>"
+          body: |
+            Bonjour,
+
+            Le déploiement de KerConnect vient de se terminer.
+
+            Statut    : ${{ github.event.workflow_run.conclusion == 'success' && 'SUCCÈS' || 'ÉCHEC' }}
+            Branche   : ${{ github.event.workflow_run.head_branch }}
+            Commit    : ${{ github.event.workflow_run.head_sha }}
+            Déclenché : ${{ github.event.workflow_run.created_at }}
+
+            Backend  : https://kerconnect-api.naratechvision.com
+            Frontend : https://kerconnect.naratechvision.com
+
+            Hawoly | Agent IA KerConnect
