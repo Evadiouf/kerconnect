@@ -10,10 +10,11 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 
-# Config (chargée depuis .env.hawoly)
-SENDER    = "demehawoly@gmail.com"
-PASSWORD  = "fwxy agdx lvwb dozm"
-RECIPIENT = "contact@naratechvision.com"
+# Config (chargée depuis variables d'environnement ou .env.hawoly)
+import os
+SENDER    = os.getenv("MAIL_USERNAME", "demehawoly@gmail.com")
+PASSWORD  = os.getenv("MAIL_PASSWORD", "")
+RECIPIENT = os.getenv("MAIL_TO", "contact@naratechvision.com")
 
 PHASES = {
     1: "Fondations",
