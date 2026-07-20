@@ -1,0 +1,127 @@
+================================================================
+  KERCONNECT — GUIDE D'UTILISATION DE LA PLATEFORME
+  Naratechvision | contact@naratechvision.com
+================================================================
+
+URL LOCALE : http://localhost:3000
+BACKEND    : http://localhost:8000
+
+================================================================
+  DEMARRAGE
+================================================================
+
+1. Lancer le backend Laravel :
+   cd backend
+   php artisan serve
+
+2. Lancer le frontend Next.js :
+   cd frontend
+   npm run dev
+
+3. Ouvrir http://localhost:3000
+
+================================================================
+  COMPTE ADMINISTRATEUR (Hawoly)
+================================================================
+
+URL      : http://localhost:3000/auth/login
+Email    : demehawoly@gmail.com
+Password : KerConnect2026!
+Dashboard: http://localhost:3000/admin/dashboard
+
+Fonctions admin :
+  - Valider et publier les annonces → /admin/annonces
+  - Gérer les utilisateurs          → /admin/users
+  - Voir les transactions           → /admin/transactions
+  - Tableau de bord stats           → /admin/dashboard
+
+================================================================
+  PROFIL BAILLEUR
+================================================================
+
+Inscription : http://localhost:3000/auth/register
+             > Choisir "Bailleur"
+
+Parcours :
+  1. Créer une annonce → /bailleur/annonces/ajouter
+  2. L'admin valide l'annonce (statut : en_attente → publie)
+  3. Gérer les demandes reçues → /bailleur/demandes
+  4. Accepter ou Refuser les candidats
+  5. Voir les paiements → /bailleur/paiements
+
+Dashboard : http://localhost:3000/bailleur/dashboard
+
+================================================================
+  PROFIL PROPRIETAIRE
+================================================================
+
+Inscription : http://localhost:3000/auth/register
+             > Choisir "Propriétaire"
+
+Parcours : Identique au Bailleur mais pour les biens en vente.
+Dashboard : http://localhost:3000/bailleur/dashboard
+
+================================================================
+  PROFIL CLIENT / LOCATAIRE-ACHETEUR
+================================================================
+
+Inscription : http://localhost:3000/auth/register
+             > Choisir "Locataire / Acheteur"
+
+Parcours :
+  1. Parcourir les annonces → /location ou /vente
+  2. Voir le détail d'un bien → /biens/[id]
+  3. Faire une demande (bouton sur la page du bien)
+  4. Suivre ses demandes → /client/demandes
+  5. Si acceptée : contacter le bailleur directement
+
+Dashboard : http://localhost:3000/client/dashboard
+
+================================================================
+  FLUX D'INSCRIPTION (tous les profils)
+================================================================
+
+  1. Aller sur /auth/register
+  2. Choisir son profil (étape 1)
+  3. Remplir nom, email, téléphone, mot de passe (étape 2)
+  4. Recevoir un code OTP à 4 chiffres par email
+  5. Saisir le code sur /auth/verify-otp
+  6. Se connecter sur /auth/login
+  7. Redirection automatique vers le bon dashboard
+
+================================================================
+  WORKFLOW DE VALIDATION DES ANNONCES
+================================================================
+
+  Bailleur crée annonce
+        ↓  (statut: en_attente)
+  Admin valide sur /admin/annonces
+        ↓  (statut: publie)
+  Annonce visible sur /location ou /vente
+        ↓
+  Client fait une demande
+        ↓
+  Bailleur accepte ou refuse
+        ↓
+  Si acceptée → contrat + paiement
+
+================================================================
+  PAGES PUBLIQUES (sans connexion)
+================================================================
+
+  Accueil  → http://localhost:3000/
+  Location → http://localhost:3000/location
+  Vente    → http://localhost:3000/vente
+  Contact  → http://localhost:3000/contact
+
+================================================================
+  NOTES IMPORTANTES
+================================================================
+
+- Le code OTP expire après 15 minutes
+- Le token de session dure 7 jours
+- Les fichiers uploadés (photos) sont dans backend/storage/app/public/
+- La commande "php artisan storage:link" a déjà été exécutée
+- Pour réinitialiser la BDD : php artisan tinker (voir notes dev)
+
+================================================================

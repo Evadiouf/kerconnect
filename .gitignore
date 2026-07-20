@@ -11,9 +11,8 @@
 # Hawoly — credentials email
 .env.hawoly
 
-# Settings Claude Code (contient des tokens)
-.claude/settings.json
-.claude/settings.local.json
+# Claude Code — dossier local (tokens, mémoire IA, scripts locaux)
+.claude/
 
 # Ne pas versionner les overrides locaux
 *.local.*
@@ -50,3 +49,17 @@ update_doc.py
 
 # Laragon cacert ajouté dans PHP
 backend/cacert.pem
+
+# Captures écran et assets de travail
+capture/
+.figma-screenshots/
+frontend/.figma-screenshots/
+erreur.png
+/logo.png
+
+# Fichiers serveur locaux
+backend/.user.ini
+backend/php
+
+# Outils locaux (binaires tiers)
+tools/

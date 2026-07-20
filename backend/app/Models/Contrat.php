@@ -8,9 +8,11 @@ class Contrat extends Model
 {
     protected $fillable = [
         'demande_id','bien_id','bailleur_id','locataire_id','numero','type',
-        'montant','date_debut','date_fin','fichier_contrat',
+        'montant','date_debut','date_fin',
+        'fichier_contrat','fichier_signe_client',
         'signature_bailleur','signature_locataire',
-        'signe_bailleur_at','signe_locataire_at','statut',
+        'signe_bailleur_at','signe_locataire_at',
+        'signe_client_at','valide_bailleur_at','statut',
     ];
 
     protected $casts = [

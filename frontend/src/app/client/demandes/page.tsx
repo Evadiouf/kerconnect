@@ -39,7 +39,7 @@ export default function MesDemandesPage() {
             <p className="text-4xl mb-4">📋</p>
             <p className="font-medium text-gray-900 mb-2">Aucune demande</p>
             <p className="text-gray-500 text-sm mb-6">Explorez nos biens et faites votre première demande.</p>
-            <Link href="/location" className="bg-blue-900 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-800">
+            <Link href="/location" className="text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity" style={{ backgroundColor: '#E05C52' }}>
               Explorer les biens
             </Link>
           </div>
@@ -59,17 +59,17 @@ export default function MesDemandesPage() {
                       <span className="capitalize">{d.type}</span>
                       <span>{new Date(d.created_at).toLocaleDateString('fr-FR')}</span>
                     </div>
-                    <p className="text-blue-900 font-medium text-sm mt-1">
+                    <p className="font-semibold text-sm mt-1" style={{ color: '#E05C52' }}>
                       {d.bien?.prix?.toLocaleString('fr-FR')} FCFA{d.bien?.nature === 'location' ? '/mois' : ''}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Link href={`/biens/${d.bien?.id}`} className="text-gray-400 hover:text-blue-600 p-2">
+                    <Link href={`/biens/${d.bien?.id}`} className="text-gray-400 hover:text-[#4338CA] p-2">
                       <Eye size={18} />
                     </Link>
                     {d.statut === 'acceptee' && (
                       <Link href={`/client/demandes/${d.id}`}
-                        className="bg-blue-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-800">
+                        className="text-white px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity" style={{ backgroundColor: '#E05C52' }}>
                         Continuer
                       </Link>
                     )}

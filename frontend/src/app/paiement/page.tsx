@@ -2,8 +2,8 @@
 
 import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import { Button } from '@/components/ui/button'
 import api from '@/lib/api'
 
 const MODES = [
@@ -45,16 +45,48 @@ const MODES = [
 ]
 
 function PaiementForm() {
-  const params    = useSearchParams()
-  const router    = useRouter()
-  const contratId = params.get('contrat_id')
-  const montant   = params.get('montant') || '0'
-  const libelle   = params.get('libelle') || 'Paiement KerConnect'
+  const params       = useSearchParams()
+  const router       = useRouter()
+  const contratId    = params.get('contrat_id')
+  const montantBase  = Number(params.get('montant') || '0')
+  const libelle      = params.get('libelle') || 'Paiement KerConnect'
 
   const [mode,    setMode]    = useState('')
   const [error,   setError]   = useState('')
   const [loading, setLoading] = useState(false)
   const [reference, setRef]   = useState('')
+
+  // Simuler la commission (toujours sur le loyer de base uniquement)
+  const { data: simulation } = useQuery({
+    queryKey: ['simuler-paiement', contratId, montantBase],
+    queryFn:  () => api.get('/v1/paiements/simuler', { params: { contrat_id: contratId, montant_base: montantBase } }).then(r => r.data),
+    enabled:  !!contratId && montantBase > 0,
+    retry:    false,
+  })
+  const commissionTaux    = simulation?.commission_taux    ?? 5
+  const commissionMontant = simulation?.commission_montant ?? Math.round(montantBase * 0.05)
+  const loyerPlusCommission = simulation?.montant_total ?? (montantBase + commissionMontant)
+
+  // Récupérer le contrat (inclut bien.caution_mois + paiements existants)
+  const { data: contratData, isLoading: contratLoading } = useQuery({
+    queryKey: ['contrat-check', contratId],
+    queryFn:  () => api.get(`/v1/contrats/${contratId}`).then(r => r.data),
+    enabled:  !!contratId,
+  })
+  const contratStatut = contratData?.statut
+  const contratSigné  = contratStatut === 'signe' || contratStatut === 'valide'
+
+  // Déterminer si c'est le premier paiement et calculer la caution
+  const paiementsConfirmes = (contratData?.paiements ?? []).filter(
+    (p: { statut: string }) => p.statut === 'confirme'
+  )
+  const isPremierPaiement = paiementsConfirmes.length === 0
+  const cautionMois       = contratData?.bien?.caution_mois ?? 0
+  const isLocation        = contratData?.bien?.nature === 'location'
+  const cautionMontant    = isPremierPaiement && isLocation && cautionMois > 0
+    ? cautionMois * montantBase
+    : 0
+  const montantTotal      = loyerPlusCommission + cautionMontant
 
   // Champs espèce/chèque
   const [nom,  setNom]  = useState('')
@@ -67,17 +99,16 @@ function PaiementForm() {
 
     try {
       const res = await api.post('/v1/paiements', {
-        contrat_id: contratId,
-        montant:    Number(montant),
+        contrat_id:      contratId,
+        montant_base:    montantBase,
+        caution_montant: cautionMontant || undefined,
         mode,
         libelle,
       })
 
       if (res.data.payment_url) {
-        // Mobile Money / Carte → rediriger vers PayDunya
         window.location.href = res.data.payment_url
       } else {
-        // Espèce / Chèque → afficher confirmation
         setRef(res.data.paiement.reference)
       }
     } catch (err: unknown) {
@@ -102,16 +133,46 @@ function PaiementForm() {
           </p>
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6">
             <p className="text-xs text-gray-500 mb-1">Référence</p>
-            <p className="text-xl font-bold font-mono text-blue-900">{reference}</p>
+            <p className="text-xl font-bold font-mono" style={{ color: '#4338CA' }}>{reference}</p>
             <p className="text-xs text-gray-400 mt-1">Conservez cette référence</p>
           </div>
-          <Button onClick={() => router.push('/client/demandes')} className="bg-blue-900 text-white w-full">
+          <button
+            onClick={() => router.push('/client/demandes')}
+            className="w-full py-3 rounded-xl text-white font-semibold text-sm hover:opacity-90 transition-opacity"
+            style={{ backgroundColor: '#E05C52' }}
+          >
             Retour à mes demandes
-          </Button>
+          </button>
         </div>
       </DashboardLayout>
     )
   }
+
+  if (contratLoading) return (
+    <DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#4338CA', borderTopColor: 'transparent' }} />
+      </div>
+    </DashboardLayout>
+  )
+
+  if (contratId && !contratSigné) return (
+    <DashboardLayout>
+      <div className="max-w-lg mx-auto text-center py-16">
+        <div className="text-6xl mb-6">✍️</div>
+        <h2 className="text-xl font-bold text-gray-900 mb-3">Contrat non signé</h2>
+        <p className="text-gray-500 mb-6">
+          Le contrat doit être signé par les deux parties avant d&apos;effectuer un paiement.
+          <br />Statut actuel : <span className="font-semibold text-yellow-600">{contratStatut ?? '—'}</span>
+        </p>
+        <button onClick={() => router.back()}
+          className="px-6 py-3 rounded-xl text-white font-semibold text-sm hover:opacity-90"
+          style={{ backgroundColor: '#4338CA' }}>
+          ← Retour
+        </button>
+      </div>
+    </DashboardLayout>
+  )
 
   return (
     <DashboardLayout>
@@ -119,12 +180,43 @@ function PaiementForm() {
         <h1 className="text-2xl font-bold text-gray-900">Effectuer un paiement</h1>
 
         {/* Récapitulatif */}
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
-          <p className="text-sm text-blue-600 font-medium mb-1">{libelle}</p>
-          <p className="text-3xl font-bold text-blue-900">
-            {Number(montant).toLocaleString('fr-FR')} FCFA
-          </p>
-          <p className="text-xs text-blue-500 mt-1">En acceptant, vous reconnaissez nos conditions d&apos;utilisation.</p>
+        <div className="rounded-2xl p-5 border" style={{ backgroundColor: '#4338CA08', borderColor: '#4338CA20' }}>
+          <p className="text-sm font-medium mb-3" style={{ color: '#4338CA' }}>{libelle}</p>
+          <div className="space-y-2 text-sm mb-3">
+            <div className="flex justify-between text-gray-600">
+              <span>Loyer de base</span>
+              <span className="font-medium">{montantBase.toLocaleString('fr-FR')} FCFA</span>
+            </div>
+            <div className="flex justify-between text-gray-600">
+              <span>Commission plateforme ({commissionTaux}%)</span>
+              <span className="font-medium text-orange-500">+ {commissionMontant.toLocaleString('fr-FR')} FCFA</span>
+            </div>
+
+            {cautionMontant > 0 && (
+              <div className="flex justify-between text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                <span className="font-medium">
+                  Caution ({cautionMois} mois)
+                  <span className="text-xs font-normal text-amber-500 ml-1">— 1er paiement</span>
+                </span>
+                <span className="font-bold">+ {cautionMontant.toLocaleString('fr-FR')} FCFA</span>
+              </div>
+            )}
+
+            <div className="border-t border-gray-200 pt-2 flex justify-between">
+              <span className="font-bold text-gray-900">Total à payer</span>
+              <span className="text-2xl font-bold" style={{ color: '#4338CA' }}>
+                {montantTotal.toLocaleString('fr-FR')} FCFA
+              </span>
+            </div>
+          </div>
+          {cautionMontant > 0 && (
+            <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-1.5 border border-amber-100">
+              La caution est remboursable à la fin du bail selon les conditions du contrat.
+            </p>
+          )}
+          {!cautionMontant && (
+            <p className="text-xs text-gray-400">En acceptant, vous reconnaissez nos conditions d&apos;utilisation.</p>
+          )}
         </div>
 
         {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
@@ -141,7 +233,7 @@ function PaiementForm() {
                   <p className="font-medium text-gray-900">{m.label}</p>
                   <p className="text-sm text-gray-500">{m.desc}</p>
                 </div>
-                {mode === m.id && <span className="ml-auto text-blue-600 font-bold">✓</span>}
+                {mode === m.id && <span className="ml-auto font-bold" style={{ color: '#E05C52' }}>✓</span>}
               </button>
             ))}
           </div>
@@ -153,25 +245,28 @@ function PaiementForm() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nom sur le {mode === 'cheque' ? 'chèque' : 'reçu'}</label>
               <input value={nom} onChange={e => setNom(e.target.value)} placeholder="Votre nom complet"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-[#E05C52] transition-colors" />
             </div>
             {mode === 'cheque' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Numéro de chèque</label>
                 <input value={info} onChange={e => setInfo(e.target.value)} placeholder="Ex: CHQ-2026-001"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-[#E05C52] transition-colors" />
               </div>
             )}
           </div>
         )}
 
         <div className="flex gap-3">
-          <Button onClick={() => router.back()} className="bg-gray-100 text-gray-700 hover:bg-gray-200">
+          <button onClick={() => router.back()}
+            className="px-4 py-3 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 font-semibold text-sm transition-colors">
             Annuler
-          </Button>
-          <Button onClick={handlePayer} disabled={!mode || loading} className="flex-1 bg-blue-900 hover:bg-blue-800 text-white">
-            {loading ? 'Traitement...' : `Payer ${Number(montant).toLocaleString('fr-FR')} FCFA`}
-          </Button>
+          </button>
+          <button onClick={handlePayer} disabled={!mode || loading}
+            className="flex-1 py-3 rounded-xl text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-60"
+            style={{ backgroundColor: '#E05C52' }}>
+            {loading ? 'Traitement...' : `Payer ${montantTotal.toLocaleString('fr-FR')} FCFA`}
+          </button>
         </div>
       </div>
     </DashboardLayout>

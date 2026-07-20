@@ -34,4 +34,12 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Mot de passe modifié avec succès.']);
     }
+
+    public function destroy(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $user = $request->user();
+        $user->tokens()->delete();
+        $user->delete();
+        return response()->json(['message' => 'Compte supprimé définitivement.']);
+    }
 }

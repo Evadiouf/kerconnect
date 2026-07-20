@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Contrat;
 use App\Models\Paiement;
+use App\Models\Setting;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,75 +13,159 @@ use Illuminate\Support\Str;
 
 class PaiementController extends Controller
 {
-    // ── Initier un paiement
+    // ── Simuler le coût total (commission incluse) avant de payer
+    public function simuler(Request $request): JsonResponse
+    {
+        $request->validate([
+            'contrat_id'  => 'required|exists:contrats,id',
+            'montant_base' => 'required|numeric|min:1',
+        ]);
+
+        $contrat          = \App\Models\Contrat::with('bailleur')->findOrFail($request->contrat_id);
+        $commissionActive = Setting::get('commission_active', '1') === '1';
+        $tauxCommission   = $commissionActive ? $contrat->bailleur->tauxCommission() : 0.0;
+        $montantBase      = (float) $request->montant_base;
+        $commission       = round($montantBase * $tauxCommission / 100, 2);
+        $montantTotal     = $montantBase + $commission;
+
+        return response()->json([
+            'montant_base'       => $montantBase,
+            'commission_taux'    => $tauxCommission,
+            'commission_montant' => $commission,
+            'montant_total'      => $montantTotal,
+        ]);
+    }
+
+    // ── Initier un paiement (commission payée par le client, en sus du loyer)
     public function initier(Request $request): JsonResponse
     {
         $request->validate([
-            'contrat_id' => 'required|exists:contrats,id',
-            'mode'       => 'required|in:espece,cheque,wave,orange_money,carte',
-            'montant'    => 'required|numeric|min:1',
-            'libelle'    => 'nullable|string',
-            'periode'    => 'nullable|date',
+            'contrat_id'      => 'required|exists:contrats,id',
+            'mode'            => 'required|in:espece,cheque,wave,orange_money,carte',
+            'montant_base'    => 'required|numeric|min:1',
+            'caution_montant' => 'nullable|numeric|min:0',
+            'libelle'         => 'nullable|string',
+            'periode'         => 'nullable|date',
         ]);
 
         $contrat = Contrat::findOrFail($request->contrat_id);
 
-        // Vérifier que l'utilisateur est le locataire ou le bailleur
         $user = $request->user();
         if (!in_array($user->id, [$contrat->bailleur_id, $contrat->locataire_id])) {
             return response()->json(['message' => 'Non autorisé.'], 403);
         }
 
+        if ($contrat->statut !== 'valide') {
+            return response()->json([
+                'message' => 'Le contrat doit être validé par le bailleur avant tout paiement.',
+            ], 422);
+        }
+
+        // Commission payée par le client : taux selon le forfait du bailleur
+        $commissionActive = Setting::get('commission_active', '1') === '1';
+        $contrat->loadMissing('bailleur');
+        $tauxCommission   = $commissionActive ? $contrat->bailleur->tauxCommission() : 0.0;
+        $montantBase      = (float) $request->montant_base;
+        $cautionMontant   = (float) ($request->caution_montant ?? 0);
+        $commission       = round($montantBase * $tauxCommission / 100, 2);
+        $montantTotal     = $montantBase + $commission + $cautionMontant;
+
         $paiement = Paiement::create([
-            'contrat_id'     => $contrat->id,
-            'payeur_id'      => $user->id,
-            'reference'      => 'TRX-' . strtoupper(Str::random(8)),
-            'montant'        => $request->montant,
-            'mode'           => $request->mode,
-            'libelle'        => $request->libelle ?? 'Paiement KerConnect',
-            'periode'        => $request->periode,
-            'statut'         => in_array($request->mode, ['espece', 'cheque']) ? 'en_attente' : 'en_attente',
+            'contrat_id'         => $contrat->id,
+            'payeur_id'          => $user->id,
+            'reference'          => 'TRX-' . strtoupper(Str::random(8)),
+            'montant'            => $montantTotal,
+            'montant_base'       => $montantBase,
+            'caution_montant'    => $cautionMontant ?: null,
+            'commission_taux'    => $tauxCommission,
+            'commission_montant' => $commission,
+            'montant_net'        => $montantBase,
+            'mode'               => $request->mode,
+            'libelle'            => $request->libelle ?? 'Paiement KerConnect',
+            'periode'            => $request->periode,
+            'statut'             => 'en_attente',
         ]);
 
-        // Pour les modes manuels (espèce, chèque), confirmer directement
         if (in_array($request->mode, ['espece', 'cheque'])) {
             return response()->json([
-                'message'    => 'Paiement enregistré. En attente de confirmation bailleur.',
-                'paiement'   => $paiement,
-                'need_confirm' => true,
+                'message'          => 'Paiement enregistré. En attente de confirmation bailleur.',
+                'paiement'         => $paiement,
+                'commission'       => $commission,
+                'montant_total'    => $montantTotal,
+                'need_confirm'     => true,
             ], 201);
         }
 
-        // Pour Mobile Money / Carte → simulation (en prod: appel PayDunya API)
         $paymentUrl = $this->initierPaydunya($paiement, $request->mode);
 
         return response()->json([
-            'message'     => 'Redirection vers le paiement.',
-            'paiement'    => $paiement,
-            'payment_url' => $paymentUrl,
+            'message'          => 'Redirection vers le paiement.',
+            'paiement'         => $paiement,
+            'commission'       => $commission,
+            'montant_total'    => $montantTotal,
+            'payment_url'      => $paymentUrl,
         ], 201);
     }
 
     // ── Confirmer un paiement (bailleur pour espèce/chèque)
     public function confirmer(Request $request, string $id): JsonResponse
     {
-        $paiement = Paiement::with('contrat')->findOrFail($id);
+        $paiement = Paiement::with(['contrat.locataire', 'contrat.bien', 'payeur'])->findOrFail($id);
 
         if ($paiement->contrat->bailleur_id !== $request->user()->id) {
             return response()->json(['message' => 'Non autorisé.'], 403);
         }
 
+        // La commission a déjà été calculée à l'initiation (payée par le client en sus)
+        $montantBase = (float) ($paiement->montant_base ?? $paiement->montant);
+        $commission  = (float) ($paiement->commission_montant ?? 0);
+
         $paiement->update([
-            'statut'  => 'confirme',
-            'paye_at' => now(),
+            'statut'      => 'confirme',
+            'paye_at'     => now(),
+            'montant_net' => $montantBase,
         ]);
 
-        return response()->json(['message' => 'Paiement confirmé.', 'paiement' => $paiement->fresh()]);
+        // Marquer le bien comme loué/vendu — il disparaît du catalogue public
+        if ($paiement->contrat->bien) {
+            $statutBien = $paiement->contrat->bien->nature === 'vente' ? 'vendu' : 'loue';
+            $paiement->contrat->bien->update(['statut' => $statutBien]);
+        }
+
+        // Email de confirmation au client
+        try {
+            $client = $paiement->contrat->locataire ?? $paiement->payeur;
+            if ($client?->email) {
+                \Illuminate\Support\Facades\Mail::raw(
+                    "Votre paiement de " . number_format($paiement->montant, 0, ',', ' ') . " FCFA a été confirmé (réf. {$paiement->reference}).\n\nLe bailleur a bien reçu votre règlement.\n\nMerci d'utiliser KerConnect.",
+                    fn($msg) => $msg->to($client->email)->subject('Paiement confirmé — KerConnect')
+                );
+            }
+        } catch (\Exception $e) {
+            \Log::warning("Email confirmation paiement non envoyé : " . $e->getMessage());
+        }
+
+        return response()->json([
+            'message'     => 'Paiement confirmé.',
+            'paiement'    => $paiement->fresh(),
+            'commission'  => $commission,
+            'montant_net' => $montantBase,
+        ]);
     }
 
     // ── Webhook PayDunya (confirmation automatique)
     public function webhook(Request $request): JsonResponse
     {
+        // Vérifier la signature HMAC si le secret est configuré
+        $secret = config('services.paydunya.secret');
+        if ($secret) {
+            $signature = $request->header('X-PayDunya-Signature') ?? '';
+            $expected  = hash_hmac('sha256', $request->getContent(), $secret);
+            if (!hash_equals($expected, $signature)) {
+                return response()->json(['error' => 'Signature invalide.'], 401);
+            }
+        }
+
         $reference = $request->input('custom_data.reference') ?? $request->input('reference');
         $statut    = $request->input('status');
 
@@ -99,6 +184,13 @@ class PaiementController extends Controller
                 'transaction_id' => $request->input('token'),
                 'paye_at'        => now(),
             ]);
+
+            // Marquer le bien comme loué/vendu — même logique que confirmer()
+            $paiement->load('contrat.bien');
+            if ($paiement->contrat?->bien) {
+                $statutBien = $paiement->contrat->bien->nature === 'vente' ? 'vendu' : 'loue';
+                $paiement->contrat->bien->update(['statut' => $statutBien]);
+            }
         } elseif ($statut === 'failed') {
             $paiement->update(['statut' => 'echoue']);
         }
@@ -129,6 +221,38 @@ class PaiementController extends Controller
         $pdf = Pdf::loadView('recus.paiement', ['paiement' => $paiement]);
 
         return $pdf->download("recu-{$paiement->reference}.pdf");
+    }
+
+    // ── Tous les paiements reçus par le bailleur
+    public function paiementsBailleur(Request $request): JsonResponse
+    {
+        $paiements = Paiement::with(['contrat.bien:id,titre', 'payeur:id,name,email'])
+            ->whereHas('contrat', fn($q) => $q->where('bailleur_id', $request->user()->id))
+            ->latest()
+            ->paginate(20);
+        return response()->json($paiements);
+    }
+
+    // ── Paiements en attente de confirmation (bailleur)
+    public function enAttente(Request $request): JsonResponse
+    {
+        $paiements = Paiement::with(['contrat.bien:id,titre'])
+            ->whereHas('contrat', fn($q) => $q->where('bailleur_id', $request->user()->id))
+            ->whereIn('mode', ['espece', 'cheque'])
+            ->where('statut', 'en_attente')
+            ->latest()
+            ->get();
+        return response()->json(['data' => $paiements]);
+    }
+
+    // ── Paiements du client connecté
+    public function mesPaiements(Request $request): JsonResponse
+    {
+        $paiements = Paiement::with(['contrat.bien:id,titre,adresse,ville'])
+            ->where('payeur_id', $request->user()->id)
+            ->latest()
+            ->paginate(10);
+        return response()->json($paiements);
     }
 
     // ── Simulation PayDunya (à remplacer par vrai SDK en production)

@@ -36,7 +36,9 @@ export default function MesFavorisPage() {
             <Heart size={48} className="mx-auto mb-4 text-gray-200" />
             <p className="font-medium text-gray-900 mb-2">Aucun favori</p>
             <p className="text-gray-500 text-sm mb-6">Enregistrez des biens qui vous intéressent en cliquant sur le cœur.</p>
-            <Link href="/location" className="bg-blue-900 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-800">
+            <Link href="/location"
+              className="text-white px-6 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity inline-block"
+              style={{ backgroundColor: '#E05C52' }}>
               Explorer les biens
             </Link>
           </div>
@@ -52,7 +54,7 @@ export default function MesFavorisPage() {
                   >
                     <Heart size={16} fill="currentColor" />
                   </button>
-                  <span className={`absolute top-3 left-3 px-2 py-0.5 rounded text-xs font-semibold ${f.bien.nature === 'location' ? 'bg-blue-600 text-white' : 'bg-emerald-600 text-white'}`}>
+                  <span className="absolute top-3 left-3 px-2 py-0.5 rounded text-xs font-semibold text-white" style={{ backgroundColor: f.bien.nature === 'location' ? '#4338CA' : '#E05C52' }}>
                     {f.bien.nature === 'location' ? 'Location' : 'Vente'}
                   </span>
                 </div>
@@ -63,10 +65,10 @@ export default function MesFavorisPage() {
                     <span className="line-clamp-1">{f.bien.adresse}, {f.bien.ville}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-blue-900 font-bold text-sm">
-                      {f.bien.prix.toLocaleString('fr-FR')} FCFA{f.bien.nature === 'location' ? '/mois' : ''}
+                    <p className="font-bold text-sm" style={{ color: '#E05C52' }}>
+                      {Number(f.bien.prix).toLocaleString('fr-FR')} FCFA{f.bien.nature === 'location' ? '/mois' : ''}
                     </p>
-                    <Link href={`/biens/${f.bien.id}`} className="text-blue-600 text-xs hover:underline">
+                    <Link href={`/biens/${f.bien.id}`} className="text-xs hover:underline" style={{ color: '#E05C52' }}>
                       Voir →
                     </Link>
                   </div>

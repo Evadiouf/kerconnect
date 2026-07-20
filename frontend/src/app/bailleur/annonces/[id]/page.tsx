@@ -1,20 +1,26 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import api from '@/lib/api'
-import { ArrowLeft, MapPin, Bed, Bath, Maximize, Star, CheckCircle, Edit, Trash2 } from 'lucide-react'
+import { ArrowLeft, MapPin, Bed, Bath, Maximize, CheckCircle, Edit, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
 export default function BailleurAnnonceDetailPage() {
   const { id }  = useParams()
   const router  = useRouter()
+  const qc      = useQueryClient()
+
+  const retirer = useMutation({
+    mutationFn: () => api.delete(`/v1/bailleur/biens/${id}`),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: ['bailleur-biens'] }); router.push('/bailleur/annonces') },
+  })
 
   const { data: bien, isLoading } = useQuery({
-    queryKey: ['bien', id],
-    queryFn:  () => api.get(`/v1/biens/${id}`).then(r => r.data),
+    queryKey: ['bailleur-bien', id],
+    queryFn:  () => api.get(`/v1/bailleur/biens/${id}`).then(r => r.data),
   })
 
   if (isLoading) return (
@@ -62,8 +68,12 @@ export default function BailleurAnnonceDetailPage() {
                 <Edit size={15} /> Modifier
               </Button>
             </Link>
-            <Button className="bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 gap-2">
-              <Trash2 size={15} /> Retirer
+            <Button
+              onClick={() => { if (confirm('Retirer cette annonce ?')) retirer.mutate() }}
+              disabled={retirer.isPending}
+              className="bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 gap-2"
+            >
+              <Trash2 size={15} /> {retirer.isPending ? 'Retrait…' : 'Retirer'}
             </Button>
           </div>
         </div>
@@ -76,13 +86,13 @@ export default function BailleurAnnonceDetailPage() {
               <div className="relative h-72 bg-gradient-to-br from-indigo-100 to-blue-50 flex items-center justify-center">
                 <span className="text-7xl">🏠</span>
                 <div className="absolute top-4 left-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${bien.nature === 'location' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'}`}>
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold text-white" style={{ backgroundColor: bien.nature === 'location' ? '#10B981' : '#E05C52' }}>
                     {bien.nature === 'location' ? 'Location' : 'Vente'}
                   </span>
                 </div>
                 {bien.is_new && (
                   <div className="absolute top-4 right-4">
-                    <span className="px-3 py-1 bg-orange-500 text-white rounded-full text-xs font-semibold">Nouveau</span>
+                    <span className="px-3 py-1 text-white rounded-full text-xs font-semibold" style={{ backgroundColor: '#E05C52' }}>Nouveau</span>
                   </div>
                 )}
               </div>
@@ -157,12 +167,16 @@ export default function BailleurAnnonceDetailPage() {
             {/* Découvrir le quartier */}
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
               <h3 className="font-bold text-gray-900 mb-3">Découvrir le quartier</h3>
-              <div className="h-40 bg-gradient-to-br from-green-100 to-blue-100 rounded-xl flex items-center justify-center text-gray-400">
-                <div className="text-center">
-                  <MapPin size={32} className="mx-auto mb-2 text-gray-300" />
-                  <p className="text-sm">{bien.adresse}, {bien.ville}</p>
-                </div>
-              </div>
+              <a
+                href={`https://maps.google.com/?q=${encodeURIComponent(bien.adresse + ', ' + bien.ville)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center h-40 bg-gray-50 rounded-xl text-sm hover:underline"
+                style={{ color: '#4338CA' }}
+              >
+                <MapPin size={16} className="mr-2" />
+                Voir sur Google Maps
+              </a>
             </div>
           </div>
 
@@ -175,10 +189,6 @@ export default function BailleurAnnonceDetailPage() {
               <p className="text-3xl font-bold text-orange-500">
                 {bien.prix?.toLocaleString('fr-FR')} FCFA{bien.nature === 'location' ? '/mois' : ''}
               </p>
-              <div className="flex items-center gap-1 mt-2">
-                <Star size={14} className="text-yellow-400 fill-yellow-400" />
-                <span className="text-sm text-gray-500">4.8</span>
-              </div>
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <p className="text-sm font-medium text-gray-700 mb-1">Type</p>
                 <p className="text-gray-900">{bien.type}</p>
@@ -197,7 +207,7 @@ export default function BailleurAnnonceDetailPage() {
                   <span className="font-bold text-gray-900">—</span>
                 </div>
               </div>
-              <Link href={`/bailleur/demandes?bien_id=${id}`}>
+              <Link href="/bailleur/demandes">
                 <Button className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white">
                   Voir les demandes
                 </Button>

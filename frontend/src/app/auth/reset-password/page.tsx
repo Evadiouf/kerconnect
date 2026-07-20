@@ -1,13 +1,13 @@
 'use client'
 
 import { Suspense } from 'react'
+import { KerConnectLogo } from '@/components/ui/Logo'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import api from '@/lib/api'
-import { Button } from '@/components/ui/button'
 
 const schema = z.object({
   password:              z.string().min(8, 'Minimum 8 caractères'),
@@ -43,6 +43,9 @@ function ResetForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-sm p-8">
+        <div className="mb-6">
+          <KerConnectLogo width={130} />
+        </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Nouveau mot de passe</h2>
         <p className="text-gray-500 mb-8">Choisissez un mot de passe sécurisé pour protéger votre compte.</p>
 
@@ -52,18 +55,23 @@ function ResetForm() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nouveau mot de passe</label>
             <input {...register('password')} type="password" placeholder="••••••••"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-[#E05C52] transition-colors" />
             {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Confirmer le mot de passe</label>
             <input {...register('password_confirmation')} type="password" placeholder="••••••••"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-[#E05C52] transition-colors" />
             {errors.password_confirmation && <p className="text-red-500 text-sm mt-1">{errors.password_confirmation.message}</p>}
           </div>
-          <Button type="submit" disabled={isSubmitting} className="w-full bg-blue-900 hover:bg-blue-800 text-white py-3">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full py-3 rounded-xl text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-60"
+            style={{ backgroundColor: '#E05C52' }}
+          >
             {isSubmitting ? 'Réinitialisation...' : 'Confirmer'}
-          </Button>
+          </button>
         </form>
       </div>
     </div>
@@ -71,5 +79,9 @@ function ResetForm() {
 }
 
 export default function ResetPasswordPage() {
-  return <Suspense><ResetForm /></Suspense>
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-[#E05C52] border-t-transparent rounded-full" /></div>}>
+      <ResetForm />
+    </Suspense>
+  )
 }

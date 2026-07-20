@@ -3,167 +3,175 @@
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
-import { Users, Building2, FileText, CreditCard, TrendingUp, AlertCircle } from 'lucide-react'
-import Link from 'next/link'
 
-interface Stats {
-  utilisateurs: { total: number; clients: number; bailleurs: number; admins: number; actifs: number; inactifs: number; ce_mois: number }
-  biens: { total: number; publies: number; en_attente: number; loues: number; vendus: number; locations: number; ventes: number }
-  demandes: { total: number; soumises: number; acceptees: number; refusees: number }
-  paiements: { total: number; confirmes: number; en_attente: number; montant_total: number; ce_mois: number }
+/* ── Helpers ── */
+const MOIS_LABELS: Record<string, string> = {
+  '01': 'Jan', '02': 'Fev', '03': 'Mar', '04': 'Avr',
+  '05': 'Mai', '06': 'Jun', '07': 'Jul', '08': 'Aout',
+  '09': 'Sept', '10': 'Oct', '11': 'Nov', '12': 'Déc',
 }
 
-interface InscriptionMois {
-  mois: string; total: number; client: number; bailleur: number
+function shortMois(mois: string): string {
+  // backend renvoie "Jan 2026", on prend juste le premier mot
+  return mois.split(' ')[0]
+}
+
+/* ── Bar chart inscriptions (données réelles) ── */
+function StackedBarChart({ data }: { data: { mois: string; total: number }[] }) {
+  const maxVal = Math.max(...data.map(d => d.total), 1)
+
+  return (
+    <div className="mt-4">
+      <div className="flex items-end gap-2 h-48">
+        {data.map(({ mois, total }) => {
+          const height = `${(total / maxVal) * 100}%`
+          return (
+            <div key={mois} className="flex flex-col items-center gap-0.5 flex-1" style={{ height: '100%', justifyContent: 'flex-end' }}>
+              <div className="w-full flex flex-col" style={{ height }}>
+                <div
+                  className="w-full rounded-t-sm"
+                  style={{ height: '100%', backgroundColor: '#34D399' }}
+                />
+              </div>
+              <span className="text-xs text-gray-400 mt-1">{shortMois(mois)}</span>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Légende */}
+      <div className="flex items-center justify-center gap-8 mt-4">
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#34D399' }} />
+          <span className="text-xs text-gray-500">Inscriptions</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Donut "Répartition par profil" ── */
+function DonutRepartition({ users, biens, demandes }: { users: number; biens: number; demandes: number }) {
+  const total = users + biens + demandes || 1
+  const C = 376.99
+  const usersLen    = (users    / total) * C
+  const biensLen    = (biens    / total) * C
+  const demandesLen = (demandes / total) * C
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative w-44 h-44">
+        <svg viewBox="0 0 140 140" className="w-44 h-44 -rotate-90">
+          <circle cx="70" cy="70" r="60" fill="none" stroke="#f3f4f6" strokeWidth="22"/>
+          {/* Demandes (gris) */}
+          <circle cx="70" cy="70" r="60" fill="none" stroke="#E5E7EB" strokeWidth="22"
+            strokeDasharray={`${demandesLen} ${C - demandesLen}`}
+            strokeDashoffset={0}
+          />
+          {/* Biens (orange) */}
+          <circle cx="70" cy="70" r="60" fill="none" stroke="#F87171" strokeWidth="22"
+            strokeDasharray={`${biensLen} ${C - biensLen}`}
+            strokeDashoffset={-demandesLen}
+          />
+          {/* Utilisateurs (vert) */}
+          <circle cx="70" cy="70" r="60" fill="none" stroke="#34D399" strokeWidth="22"
+            strokeDasharray={`${usersLen} ${C - usersLen}`}
+            strokeDashoffset={-(demandesLen + biensLen)}
+          />
+        </svg>
+        {/* Centre vide — cercle blanc */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-16 h-16 bg-white rounded-full" />
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-2 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#34D399' }} />
+          <span className="text-gray-600">Utilisateurs: {users}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#F87171' }} />
+          <span className="text-gray-600">Biens: {biens}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#E5E7EB' }} />
+          <span className="text-gray-600">Demandes: {demandes}</span>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function AdminDashboardPage() {
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-dashboard'],
-    queryFn:  () => api.get('/v1/admin/dashboard').then(r => r.data),
+    queryKey: ['admin-stats'],
+    queryFn: () => api.get('/v1/admin/dashboard').then(r => r.data),
   })
 
-  const stats: Stats | undefined = data?.stats
-  const inscriptions: InscriptionMois[] = data?.inscriptions || []
+  const stats = data?.stats || {}
+  const users          = stats.utilisateurs?.total   ?? 0
+  const biens          = stats.biens?.total          ?? 0
+  const demandes       = stats.demandes?.total       ?? 0
+  const paiementsTotal = stats.paiements?.montant_total ?? 0
+  const inscriptionsMois: { mois: string; total: number }[] = data?.inscriptions ?? []
 
-  if (isLoading) return (
-    <DashboardLayout>
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-400">Chargement des statistiques...</div>
-      </div>
-    </DashboardLayout>
-  )
+  const CARDS = [
+    { label: 'Utilisateurs inscrits', value: isLoading ? '…' : String(users),                                      icon: '📋', iconBg: 'bg-purple-50' },
+    { label: 'Annonces en ligne',     value: isLoading ? '…' : String(stats.biens?.publies ?? 0),                  icon: '📣', iconBg: 'bg-orange-50' },
+    { label: 'Volume Total',          value: isLoading ? '…' : `${paiementsTotal.toLocaleString('fr-FR')} FCFA`,   icon: '💰', iconBg: 'bg-green-50'  },
+  ]
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
+
+        {/* ── En-tête ── */}
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Tableau de bord</h1>
-          <p className="text-gray-500 mt-1">Vue globale de la plateforme KerConnect</p>
+          <p className="text-sm text-gray-400 mt-0.5">
+            {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
         </div>
 
-        {/* Métriques principales */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: 'Utilisateurs', value: stats?.utilisateurs.total || 0, sub: `+${stats?.utilisateurs.ce_mois || 0} ce mois`, icon: Users, color: 'bg-blue-50 text-blue-700', href: '/admin/users' },
-            { label: 'Biens publiés', value: stats?.biens.publies || 0, sub: `${stats?.biens.en_attente || 0} en attente`, icon: Building2, color: 'bg-green-50 text-green-700', href: '/admin/annonces' },
-            { label: 'Demandes', value: stats?.demandes.total || 0, sub: `${stats?.demandes.soumises || 0} en cours`, icon: FileText, color: 'bg-orange-50 text-orange-700', href: '/admin/annonces' },
-            { label: 'CA du mois', value: `${(stats?.paiements.ce_mois || 0).toLocaleString('fr-FR')} F`, sub: `${stats?.paiements.confirmes || 0} paiements`, icon: CreditCard, color: 'bg-purple-50 text-purple-700', href: '/admin/transactions' },
-          ].map(({ label, value, sub, icon: Icon, color, href }) => (
-            <Link key={label} href={href}>
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color}`}>
-                  <Icon size={20} />
-                </div>
-                <p className="text-xl font-bold text-gray-900">{value}</p>
-                <p className="text-sm text-gray-900 font-medium">{label}</p>
-                <p className="text-xs text-gray-400 mt-1">{sub}</p>
+        {/* ── 3 cards stats ── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {CARDS.map(({ label, value, icon, iconBg }) => (
+            <div key={label} className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 text-xl ${iconBg}`}>
+                {icon}
               </div>
-            </Link>
+              <p className="text-3xl font-extrabold text-gray-900 mb-1">{value}</p>
+              <p className="text-sm text-gray-400">{label}</p>
+            </div>
           ))}
         </div>
 
-        {/* Répartition utilisateurs */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-            <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <TrendingUp size={18} className="text-blue-600" /> Répartition par profil
-            </h2>
-            <div className="space-y-3">
-              {[
-                { label: 'Clients / Locataires', value: stats?.utilisateurs.clients || 0,   color: 'bg-blue-500' },
-                { label: 'Bailleurs / Propriétaires', value: stats?.utilisateurs.bailleurs || 0, color: 'bg-emerald-500' },
-                { label: 'Administrateurs',        value: stats?.utilisateurs.admins || 0,   color: 'bg-purple-500' },
-              ].map(({ label, value, color }) => {
-                const total = stats?.utilisateurs.total || 1
-                const pct   = Math.round((value / total) * 100)
-                return (
-                  <div key={label}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-600">{label}</span>
-                      <span className="font-medium text-gray-900">{value} ({pct}%)</span>
-                    </div>
-                    <div className="h-2 bg-gray-100 rounded-full">
-                      <div className={`h-2 rounded-full ${color}`} style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-            <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between text-sm">
-              <span className="text-green-600">✓ {stats?.utilisateurs.actifs || 0} actifs</span>
-              <span className="text-red-500">✗ {stats?.utilisateurs.inactifs || 0} inactifs</span>
-            </div>
+        {/* ── Charts ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+          {/* Bar chart inscriptions (2/3) */}
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="font-bold text-gray-900 mb-1">Inscriptions par mois</h2>
+            {isLoading ? (
+              <div className="h-48 flex items-center justify-center text-gray-400 text-sm">Chargement…</div>
+            ) : inscriptionsMois.length === 0 ? (
+              <div className="h-48 flex items-center justify-center text-gray-400 text-sm">Aucune donnée</div>
+            ) : (
+              <StackedBarChart data={inscriptionsMois} />
+            )}
           </div>
 
-          {/* Biens */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-            <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Building2 size={18} className="text-green-600" /> État des biens
-            </h2>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: 'Publiés',     value: stats?.biens.publies || 0,    color: 'text-green-700 bg-green-50' },
-                { label: 'En attente',  value: stats?.biens.en_attente || 0, color: 'text-yellow-700 bg-yellow-50' },
-                { label: 'Loués',       value: stats?.biens.loues || 0,      color: 'text-blue-700 bg-blue-50' },
-                { label: 'Vendus',      value: stats?.biens.vendus || 0,     color: 'text-purple-700 bg-purple-50' },
-              ].map(({ label, value, color }) => (
-                <div key={label} className={`rounded-xl p-4 ${color}`}>
-                  <p className="text-2xl font-bold">{value}</p>
-                  <p className="text-sm font-medium mt-1">{label}</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between text-sm text-gray-500">
-              <span>📍 {stats?.biens.locations || 0} locations</span>
-              <span>🏷️ {stats?.biens.ventes || 0} ventes</span>
-            </div>
+          {/* Donut répartition (1/3) */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm flex flex-col items-center">
+            <h2 className="font-bold text-gray-900 mb-4 self-start">Répartition</h2>
+            {isLoading ? (
+              <div className="h-44 flex items-center justify-center text-gray-400 text-sm">Chargement…</div>
+            ) : (
+              <DonutRepartition users={users} biens={biens} demandes={demandes} />
+            )}
           </div>
         </div>
-
-        {/* Inscriptions par mois */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <h2 className="font-bold text-gray-900 mb-4">Inscriptions — 6 derniers mois</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left py-2 text-gray-500 font-medium">Mois</th>
-                  <th className="text-center py-2 text-gray-500 font-medium">Total</th>
-                  <th className="text-center py-2 text-blue-600 font-medium">Clients</th>
-                  <th className="text-center py-2 text-emerald-600 font-medium">Bailleurs</th>
-                </tr>
-              </thead>
-              <tbody>
-                {inscriptions.map((row) => (
-                  <tr key={row.mois} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="py-2.5 text-gray-700 font-medium">{row.mois}</td>
-                    <td className="text-center py-2.5 font-bold text-gray-900">{row.total}</td>
-                    <td className="text-center py-2.5 text-blue-700">{row.client}</td>
-                    <td className="text-center py-2.5 text-emerald-700">{row.bailleur}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Alertes */}
-        {(stats?.biens.en_attente || 0) > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 flex items-center gap-3">
-            <AlertCircle size={20} className="text-yellow-600 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="font-medium text-yellow-900">
-                {stats?.biens.en_attente} annonce(s) en attente de validation
-              </p>
-              <p className="text-sm text-yellow-700 mt-0.5">Vérifiez les annonces soumises par les bailleurs.</p>
-            </div>
-            <Link href="/admin/annonces?statut=en_attente"
-              className="bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-700 flex-shrink-0">
-              Modérer
-            </Link>
-          </div>
-        )}
       </div>
     </DashboardLayout>
   )

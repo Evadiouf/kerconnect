@@ -34,7 +34,7 @@ export default function AdminTransactionsPage() {
   })
 
   const paiements: Paiement[] = data?.data || []
-  const montantTotal = paiements.filter(p => p.statut === 'confirme').reduce((s, p) => s + p.montant, 0)
+  const montantTotal = paiements.filter(p => p.statut === 'confirme').reduce((s, p) => s + Number(p.montant), 0)
 
   return (
     <DashboardLayout>
@@ -50,14 +50,14 @@ export default function AdminTransactionsPage() {
         {/* Filtres */}
         <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex flex-wrap gap-3">
           <select value={statut} onChange={e => setStatut(e.target.value)}
-            className="px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            className="px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#E05C52] transition-colors">
             <option value="">Tous les statuts</option>
             <option value="confirme">Confirmés</option>
             <option value="en_attente">En attente</option>
             <option value="echoue">Échoués</option>
           </select>
           <select value={mode} onChange={e => setMode(e.target.value)}
-            className="px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            className="px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#E05C52] transition-colors">
             <option value="">Tous les modes</option>
             {Object.entries(MODE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
@@ -86,13 +86,13 @@ export default function AdminTransactionsPage() {
                   const Icon = cfg.icon
                   return (
                     <tr key={p.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-4 font-mono text-sm text-blue-900 font-medium">{p.reference}</td>
+                      <td className="px-4 py-4 font-mono text-sm font-medium" style={{ color: '#4338CA' }}>{p.reference}</td>
                       <td className="px-4 py-4">
                         <p className="text-sm font-medium text-gray-900">{p.payeur?.name}</p>
                         <p className="text-xs text-gray-400">{p.payeur?.email}</p>
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-600 max-w-32 truncate">{p.contrat?.bien?.titre}</td>
-                      <td className="px-4 py-4 font-bold text-gray-900 text-sm">{p.montant.toLocaleString('fr-FR')} F</td>
+                      <td className="px-4 py-4 font-bold text-gray-900 text-sm">{Number(p.montant).toLocaleString('fr-FR')} F</td>
                       <td className="px-4 py-4 text-sm text-gray-500">{MODE_LABELS[p.mode] || p.mode}</td>
                       <td className="px-4 py-4">
                         <span className={`flex items-center gap-1.5 text-xs font-medium ${cfg.color}`}>

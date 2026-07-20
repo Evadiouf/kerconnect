@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 105" width="200" height="105">
+  <defs>
+    <style>
+      .blue-fill { fill: #2B7FCC; }
+      .blue-stroke { fill: none; stroke: #2B7FCC; stroke-width: 5.5; stroke-linejoin: round; stroke-linecap: round; }
+      .coral-stroke { fill: none; stroke: #D94F4F; stroke-width: 5.5; stroke-linejoin: round; stroke-linecap: round; }
+    </style>
+  </defs>
+
+  <!-- Hexagone central haut - PLEIN bleu -->
+  <polygon class="blue-fill" points="100,3 112,10 112,24 100,31 88,24 88,10"/>
+
+  <!-- Hexagone gauche supérieur - contour bleu -->
+  <polygon class="blue-stroke" points="69,16 81,23 81,37 69,44 57,37 57,23"/>
+
+  <!-- Hexagone droite supérieur - contour bleu -->
+  <polygon class="blue-stroke" points="131,16 143,23 143,37 131,44 119,37 119,23"/>
+
+  <!-- Connexion centrale gauche (entre hexagone central et gauche) -->
+  <line class="blue-stroke" x1="88" y1="17" x2="81" y2="30"/>
+
+  <!-- Connexion centrale droite (entre hexagone central et droite) -->
+  <line class="blue-stroke" x1="112" y1="17" x2="119" y2="30"/>
+
+  <!-- Corps central bleu - rectangle arrondi en bas -->
+  <!-- Côté gauche vertical -->
+  <line class="blue-stroke" x1="57" y1="44" x2="57" y2="65"/>
+  <!-- Côté droit vertical -->
+  <line class="blue-stroke" x1="143" y1="44" x2="143" y2="65"/>
+  <!-- Bas arrondi -->
+  <path class="blue-stroke" d="M 57 65 Q 57 75 67 78 L 133 78 Q 143 75 143 65"/>
+  <!-- Connexion haut corps depuis hex central -->
+  <line class="blue-stroke" x1="100" y1="31" x2="100" y2="44"/>
+  <!-- Barre haute du corps -->
+  <line class="blue-stroke" x1="57" y1="44" x2="143" y2="44"/>
+
+  <!-- Bras gauche coral - descend en U depuis le bas gauche -->
+  <!-- Partie extérieure gauche: de hex gauche vers le bas -->
+  <path class="coral-stroke" d="M 46 38 Q 30 48 26 62 Q 22 76 30 84 Q 36 90 44 86 Q 52 82 50 72"/>
+
+  <!-- Bras droit coral - descend en U depuis le bas droit -->
+  <path class="coral-stroke" d="M 154 38 Q 170 48 174 62 Q 178 76 170 84 Q 164 90 156 86 Q 148 82 150 72"/>
+
+  <!-- Texte KÊRCONNECT -->
+  <text
+    x="100"
+    y="100"
+    font-family="'Arial Black', Impact, 'Arial Bold', Arial, sans-serif"
+    font-size="13"
+    font-weight="900"
+    letter-spacing="2"
+    text-anchor="middle"
+    fill="#2B7FCC"
+  >K&#x00CA;RCONNECT</text>
+
+</svg>

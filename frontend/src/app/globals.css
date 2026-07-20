@@ -49,13 +49,23 @@
 }
 
 :root {
+  /* ── KerConnect Design Tokens (Figma exact) ── */
+  /* Couleurs primaires */
+  --ker-coral: #E05C52;        /* CTA, badges, prix, accents */
+  --ker-indigo: #4338CA;       /* Sidebar, header dashboard */
+  --ker-dark: #1A1A2E;         /* Footer, fond sombre */
+  --ker-green: #10B981;        /* Badge Location */
+  --ker-blue-card: #3B82F6;    /* Badge Vente */
+
+  /* Système shadcn/ui */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  /* Primary = corail KerConnect */
+  --primary: #E05C52;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -66,21 +76,21 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --ring: #E05C52;
+  --chart-1: #E05C52;
+  --chart-2: #4338CA;
+  --chart-3: #10B981;
+  --chart-4: #F59E0B;
+  --chart-5: #8B5CF6;
+  --radius: 0.75rem;
+  --sidebar: #4338CA;
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: #E05C52;
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-accent: rgba(255,255,255,0.1);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: rgba(255,255,255,0.1);
+  --sidebar-ring: #E05C52;
 }
 
 .dark {

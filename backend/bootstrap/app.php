@@ -14,7 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'role'         => \App\Http\Middleware\RoleMiddleware::class,
+            'inscription'  => \App\Http\Middleware\CheckInscriptionPayee::class,
         ]);
         // Pas de statefulApi() — on utilise des Bearer tokens JWT, pas de cookies/sessions
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);

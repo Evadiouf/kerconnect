@@ -69,7 +69,7 @@ export default function DemandesBailleurPage() {
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-700">{d.bien?.titre}</td>
                     <td className="px-4 py-4 text-sm">
-                      <span className="px-2 py-1 rounded text-xs font-medium bg-blue-50 text-blue-700 capitalize">{d.type}</span>
+                      <span className="px-2 py-1 rounded-lg text-xs font-medium capitalize" style={{ backgroundColor: '#4338CA15', color: '#4338CA' }}>{d.type}</span>
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-500">
                       {new Date(d.created_at).toLocaleDateString('fr-FR')}
@@ -79,7 +79,7 @@ export default function DemandesBailleurPage() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
-                        <Link href={`/bailleur/demandes/${d.id}`} className="text-gray-400 hover:text-blue-600">
+                        <Link href={`/bailleur/demandes/${d.id}`} className="text-gray-400 hover:text-[#4338CA]">
                           <Eye size={16} />
                         </Link>
                         {d.statut === 'soumise' && (

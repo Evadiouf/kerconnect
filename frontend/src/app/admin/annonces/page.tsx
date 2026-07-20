@@ -59,7 +59,8 @@ function AnnoncesContent() {
             { value: 'retire',     label: 'Retirées' },
           ].map(({ value, label }) => (
             <button key={value} onClick={() => setStatut(value)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${statut === value ? 'bg-blue-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-300'}`}>
+              style={statut === value ? { backgroundColor: '#4338CA' } : {}}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${statut === value ? 'text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-400'}`}>
               {label}
             </button>
           ))}
@@ -102,7 +103,7 @@ function AnnoncesContent() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
-                        <Link href={`/biens/${b.id}`} className="text-gray-400 hover:text-blue-600">
+                        <Link href={`/biens/${b.id}`} className="text-gray-400 hover:text-[#4338CA]">
                           <Eye size={15} />
                         </Link>
                         {b.statut === 'en_attente' && (

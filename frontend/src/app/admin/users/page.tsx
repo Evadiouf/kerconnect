@@ -5,7 +5,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
 import Link from 'next/link'
-import { Search, Eye, ToggleLeft, ToggleRight, UserCheck, UserX } from 'lucide-react'
+import { Search, Eye, ToggleLeft, ToggleRight, UserCheck, UserX, Trash2, Check, X } from 'lucide-react'
 
 interface User {
   id: number; name: string; email: string; role: string;
@@ -23,17 +23,24 @@ const ROLES = ['', 'client', 'bailleur', 'proprietaire', 'admin']
 
 export default function AdminUsersPage() {
   const qc = useQueryClient()
-  const [search, setSearch] = useState('')
-  const [role,   setRole]   = useState('')
+  const [search,    setSearch]    = useState('')
+  const [role,      setRole]      = useState('')
+  const [page,      setPage]      = useState(1)
+  const [confirmId, setConfirmId] = useState<number | null>(null)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-users', search, role],
-    queryFn:  () => api.get('/v1/admin/users', { params: { search, role } }).then(r => r.data),
+    queryKey: ['admin-users', search, role, page],
+    queryFn:  () => api.get('/v1/admin/users', { params: { search, role, page } }).then(r => r.data),
   })
 
   const toggle = useMutation({
     mutationFn: (id: number) => api.put(`/v1/admin/users/${id}/toggle`),
     onSuccess:  () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
+  })
+
+  const deleteUser = useMutation({
+    mutationFn: (id: number) => api.delete(`/v1/admin/users/${id}`),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: ['admin-users'] }); setConfirmId(null) },
   })
 
   const users: User[] = data?.data || []
@@ -52,10 +59,10 @@ export default function AdminUsersPage() {
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Rechercher nom ou email..."
-              className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#E05C52] transition-colors" />
           </div>
           <select value={role} onChange={e => setRole(e.target.value)}
-            className="px-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#E05C52] transition-colors bg-white">
             <option value="">Tous les rôles</option>
             {ROLES.slice(1).map(r => <option key={r} value={r} className="capitalize">{r}</option>)}
           </select>
@@ -84,7 +91,7 @@ export default function AdminUsersPage() {
                   <tr key={u.id} className="hover:bg-gray-50">
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-blue-900 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style={{ backgroundColor: '#4338CA' }}>
                           {u.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
@@ -110,15 +117,34 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
-                        <Link href={`/admin/users/${u.id}`} className="text-gray-400 hover:text-blue-600">
+                        <Link href={`/admin/users/${u.id}`} className="text-gray-400 hover:text-[#4338CA]">
                           <Eye size={16} />
                         </Link>
                         {u.role !== 'admin' && (
-                          <button onClick={() => toggle.mutate(u.id)}
-                            className={`${u.is_active ? 'text-gray-400 hover:text-red-500' : 'text-gray-400 hover:text-green-600'}`}
-                            title={u.is_active ? 'Désactiver' : 'Activer'}>
-                            {u.is_active ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
-                          </button>
+                          <>
+                            <button onClick={() => toggle.mutate(u.id)}
+                              className={`${u.is_active ? 'text-gray-400 hover:text-red-500' : 'text-gray-400 hover:text-green-600'}`}
+                              title={u.is_active ? 'Désactiver' : 'Activer'}>
+                              {u.is_active ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+                            </button>
+                            {confirmId === u.id ? (
+                              <span className="flex items-center gap-1">
+                                <button onClick={() => deleteUser.mutate(u.id)}
+                                  className="text-red-600 hover:text-red-700" title="Confirmer suppression">
+                                  <Check size={14} />
+                                </button>
+                                <button onClick={() => setConfirmId(null)}
+                                  className="text-gray-400 hover:text-gray-600" title="Annuler">
+                                  <X size={14} />
+                                </button>
+                              </span>
+                            ) : (
+                              <button onClick={() => setConfirmId(u.id)}
+                                className="text-gray-400 hover:text-red-600" title="Supprimer définitivement">
+                                <Trash2 size={15} />
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
                     </td>
@@ -133,7 +159,9 @@ export default function AdminUsersPage() {
         {data && data.last_page > 1 && (
           <div className="flex justify-center gap-2">
             {Array.from({ length: data.last_page }, (_, i) => i + 1).map(page => (
-              <button key={page} className={`w-8 h-8 rounded-lg text-sm font-medium ${data.current_page === page ? 'bg-blue-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-300'}`}>
+              <button key={page} onClick={() => setPage(page)}
+                style={data.current_page === page ? { backgroundColor: '#4338CA' } : {}}
+                className={`w-8 h-8 rounded-lg text-sm font-medium ${data.current_page === page ? 'text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-400'}`}>
                 {page}
               </button>
             ))}

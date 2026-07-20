@@ -1,0 +1,689 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{multirow}
+
+\usetikzlibrary{shapes.geometric, arrows, positioning, fit, backgrounds}
+
+% Couleurs KerConnect
+\definecolor{kerblue}{HTML}{4338CA}
+\definecolor{kercoral}{HTML}{E05C52}
+\definecolor{kergreen}{HTML}{10B981}
+\definecolor{kergray}{HTML}{6B7280}
+\definecolor{codebg}{HTML}{F3F4F6}
+
+% Configuration hyperref
+\hypersetup{
+  colorlinks=true,
+  linkcolor=kerblue,
+  urlcolor=kercoral,
+  pdftitle={KerConnect -- Documentation Technique},
+  pdfauthor={Naratechvision}
+}
+
+% Configuration listings
+\lstset{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{kergray},
+  keywordstyle=\color{kerblue}\bfseries,
+  commentstyle=\color{kergray}\itshape,
+  stringstyle=\color{kercoral},
+  numbers=left,
+  numberstyle=\tiny\color{kergray},
+  numbersep=8pt,
+  tabsize=2,
+  showstringspaces=false
+}
+
+% En-tete / pied de page
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{kerblue}{\textbf{KerConnect}}}
+\fancyhead[R]{\textcolor{kergray}{Documentation Technique}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Titres colores
+\titleformat{\section}{\large\bfseries\color{kerblue}}{}{0em}{\thesection\quad}
+\titleformat{\subsection}{\normalsize\bfseries\color{kercoral}}{}{0em}{\thesubsection\quad}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{kergray}}{}{0em}{\thesubsubsection\quad}
+
+% Styles TikZ
+\tikzset{
+  box/.style={
+    draw=kerblue, fill=blue!5, rounded corners=6pt,
+    minimum width=4cm, minimum height=1.1cm,
+    align=center, text width=3.8cm, font=\small
+  },
+  dbox/.style={
+    draw=kercoral, fill=red!5, rounded corners=6pt,
+    minimum width=4cm, minimum height=1.1cm,
+    align=center, text width=3.8cm, font=\small
+  },
+  gbox/.style={
+    draw=kergreen, fill=green!5, rounded corners=6pt,
+    minimum width=4cm, minimum height=1.1cm,
+    align=center, text width=3.8cm, font=\small
+  },
+  sbox/.style={
+    draw=kergray, fill=gray!5, rounded corners=6pt,
+    minimum width=4cm, minimum height=1.1cm,
+    align=center, text width=3.8cm, font=\small
+  },
+  arr/.style={->, >=stealth, thick, color=kerblue},
+  darr/.style={->, >=stealth, thick, color=kercoral},
+  garr/.style={->, >=stealth, thick, color=kergreen},
+}
+
+\begin{document}
+
+% PAGE DE TITRE
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\Huge\bfseries\textcolor{kerblue}{KerConnect}}\\[0.5em]
+{\large\textcolor{kercoral}{Plateforme Immobiliere Senegalaise}}\\[3em]
+\rule{12cm}{0.5pt}\\[1.5em]
+{\LARGE\bfseries Documentation Technique Complete}\\[1em]
+{\large Version 2.0 -- Juin 2026}\\[3em]
+\begin{tabular}{ll}
+\textbf{Developpe par} & Naratechvision \\
+\textbf{Email}         & contact@naratechvision.com \\
+\textbf{Type}          & Plateforme Web Full-Stack \\
+\textbf{Marche cible}  & Senegal (Dakar, Thies, Saint-Louis...)
+\end{tabular}
+\vfill
+{\small\textcolor{kergray}{Document confidentiel -- Naratechvision 2026}}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ─────────────────────────────────────────────
+\section{Presentation du Projet}
+% ─────────────────────────────────────────────
+
+\subsection{Vision et Objectif}
+
+KerConnect est une plateforme immobiliere 100\% en ligne concue pour le marche senegalais.
+Elle connecte les bailleurs, proprietaires et clients (locataires / acheteurs) dans un
+ecosysteme digital securise, de la recherche de bien jusqu'au paiement du loyer ou du
+prix d'achat, en passant par la signature electronique du contrat.
+
+\textbf{Probleme resolu :} Le marche immobilier senegalais souffre d'un manque de
+transparence, de faux contrats, de litiges recurrents et d'un acces difficile aux
+offres fiables.
+
+\textbf{Solution KerConnect :}
+\begin{itemize}
+  \item Annonces verifiees et validees par un administrateur avant publication
+  \item Contrat numerique : upload PDF bailleur $\to$ signature manuscrite client $\to$ validation bailleur
+  \item Paiements tracables via Wave, Orange Money, carte ou especes
+  \item Commission automatique de la plateforme (taux configurable par l'admin)
+  \item Score de confiance et badge ``Verifie'' pour les bailleurs serieux
+\end{itemize}
+
+\subsection{Profils Utilisateurs}
+
+\begin{center}
+\begin{tabular}{|p{3cm}|p{10cm}|}
+\hline
+\textbf{Profil} & \textbf{Role et capacites} \\
+\hline
+\textbf{Client} & Cherche un bien a louer ou acheter. Peut faire des demandes, gerer ses favoris, creer des alertes, signer des contrats, effectuer des paiements et noter le bailleur. \\
+\hline
+\textbf{Bailleur} & Met des biens en location. Publie des annonces (3 etapes + photos), gere les demandes, uploade des contrats PDF, confirme les paiements especes, consulte son rapport mensuel. \\
+\hline
+\textbf{Proprietaire} & Vend des biens immobiliers. Memes capacites que le bailleur (interface partagee). \\
+\hline
+\textbf{Admin (Hawoly)} & Valide les annonces, gere les utilisateurs (suppression, activation), configure la commission, consulte les transactions et les revenus de la plateforme. \\
+\hline
+\end{tabular}
+\end{center}
+
+% ─────────────────────────────────────────────
+\section{Architecture Technique}
+% ─────────────────────────────────────────────
+
+\subsection{Diagramme d'Architecture}
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.6cm and 2.5cm]
+\node[box] (browser) {Navigateur\\{\small React 19 / Next.js 16}};
+\node[box, right=3cm of browser] (api) {API REST\\{\small Laravel 13.8 / PHP 8.3}};
+\node[box, below=1.8cm of api] (db) {Base de donnees\\{\small MySQL 8.0}};
+\node[sbox, below=1.8cm of browser] (proxy) {Middleware\\{\small proxy.ts (Next.js 16)}};
+\node[gbox, right=3cm of db] (storage) {Stockage fichiers\\{\small Laravel Storage}};
+\node[dbox, above=1.8cm of api] (smtp) {Email SMTP\\{\small Gmail TLS port 465}};
+
+\draw[arr] (browser) -- node[above, font=\tiny] {HTTP/JSON Bearer} (api);
+\draw[arr] (proxy) -- node[left, font=\tiny] {kc\_auth / kc\_role} (browser);
+\draw[arr] (api) -- node[right, font=\tiny] {Eloquent ORM} (db);
+\draw[arr] (api) -- node[below, font=\tiny] {PDF / Images} (storage);
+\draw[arr] (api) -- node[right, font=\tiny] {Mail::raw()} (smtp);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Stack Technologique}
+
+\subsubsection{Frontend}
+
+\begin{longtable}{|p{4cm}|p{4cm}|p{5cm}|}
+\hline
+\textbf{Technologie} & \textbf{Version} & \textbf{Usage} \\
+\hline
+\endhead
+Next.js & 16.2.9 (Turbopack) & Framework React, App Router \\
+\hline
+React & 19 & Interface utilisateur \\
+\hline
+TypeScript & 5 & Typage statique \\
+\hline
+Tailwind CSS & 4 & Styling utilitaire \\
+\hline
+Zustand & 5 & State global (auth + cookies) \\
+\hline
+TanStack Query & v5 & Cache et requetes API \\
+\hline
+Axios & latest & Client HTTP \\
+\hline
+react-hook-form + zod & latest & Formulaires et validation \\
+\hline
+lucide-react & latest & Icones SVG \\
+\hline
+\end{longtable}
+
+\subsubsection{Backend}
+
+\begin{longtable}{|p{4cm}|p{4cm}|p{5cm}|}
+\hline
+\textbf{Technologie} & \textbf{Version} & \textbf{Usage} \\
+\hline
+\endhead
+Laravel & 13.8 & Framework PHP \\
+\hline
+PHP & 8.3 & Runtime \\
+\hline
+Laravel Sanctum & 4.3 & Tokens Bearer (7 jours) \\
+\hline
+MySQL & 8.0+ & Base de donnees \\
+\hline
+Laravel Storage & -- & Fichiers (public disk) \\
+\hline
+Gmail SMTP & smtps:465 & Emails OTP et notifications \\
+\hline
+DomPDF & latest & Generation recus PDF \\
+\hline
+\end{longtable}
+
+\subsection{Middleware d'Authentification (proxy.ts)}
+
+\begin{lstlisting}[caption=Convention Next.js 16 -- proxy.ts]
+export function proxy(request: NextRequest) {
+  const isAuthenticated = request.cookies.has('kc_auth')
+  // Protege /client/* /bailleur/* /admin/*
+  if (isProtectedRoute && !isAuthenticated) {
+    return NextResponse.redirect('/auth/login?redirect=' + pathname)
+  }
+  // Redirige vers dashboard selon role si deja connecte
+  if (isAuthRoute && isAuthenticated) {
+    const role = request.cookies.get('kc_role')?.value
+    return NextResponse.redirect(DASHBOARD[role])
+  }
+  return NextResponse.next()
+}
+\end{lstlisting}
+
+% ─────────────────────────────────────────────
+\section{Base de Donnees}
+% ─────────────────────────────────────────────
+
+\subsection{Schema ERD Simplifie}
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.8cm and 3cm]
+\node[box, text width=2.8cm] (users) {\textbf{users}\\{\tiny id, name, email,\\role, note\_moyenne}};
+\node[box, text width=2.8cm, right=3cm of users] (biens) {\textbf{biens}\\{\tiny id, user\_id,\\titre, statut}};
+\node[box, text width=2.8cm, below=2cm of biens] (demandes) {\textbf{demandes}\\{\tiny id, bien\_id,\\demandeur\_id}};
+\node[box, text width=2.8cm, below=2cm of users] (contrats) {\textbf{contrats}\\{\tiny id, demande\_id,\\fichier\_contrat}};
+\node[dbox, text width=2.8cm, right=3cm of contrats] (paiements) {\textbf{paiements}\\{\tiny id, contrat\_id,\\commission}};
+\node[gbox, text width=2.8cm, left=2.5cm of contrats] (avis) {\textbf{avis}\\{\tiny id, contrat\_id,\\note 1-5}};
+\node[sbox, text width=2.8cm, right=3cm of demandes] (alertes) {\textbf{alertes}\\{\tiny user\_id, ville,\\prix\_max}};
+
+\draw[arr] (users) -- (biens);
+\draw[arr] (biens) -- (demandes);
+\draw[arr] (demandes) -- (contrats);
+\draw[arr] (contrats) -- (paiements);
+\draw[arr] (contrats) -- (avis);
+\draw[arr] (users) -- (alertes);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Tables Principales}
+
+\subsubsection{users}
+\begin{center}
+\begin{tabular}{|p{3.5cm}|p{3cm}|p{6cm}|}
+\hline
+\textbf{Colonne} & \textbf{Type} & \textbf{Description} \\
+\hline
+id & bigint PK & Identifiant unique \\
+name & varchar(255) & Nom complet \\
+email & varchar UNIQUE & Email (login) \\
+password & varchar & Hash bcrypt \\
+role & enum & client/bailleur/proprietaire/admin \\
+phone & varchar(20) & Numero senegalais \\
+is\_active & boolean & Compte actif \\
+email\_verified\_at & timestamp & Verification OTP \\
+note\_moyenne & decimal(3,1) & Moyenne des avis \\
+nb\_avis & integer & Nombre d'avis \\
+verifie & boolean & Badge verifie \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{biens}
+\begin{center}
+\begin{tabular}{|p{3.5cm}|p{3cm}|p{6cm}|}
+\hline
+\textbf{Colonne} & \textbf{Type} & \textbf{Description} \\
+\hline
+id & bigint PK & Identifiant \\
+user\_id & FK users & Bailleur proprietaire \\
+titre & varchar(255) & Titre de l'annonce \\
+type & varchar & appartement/villa/studio/... \\
+nature & enum & location / vente \\
+prix & decimal(15,2) & Loyer mensuel ou prix \\
+adresse & varchar & Adresse physique \\
+ville & varchar & Ville \\
+equipements & JSON & Liste des equipements \\
+images & JSON & Chemins photos uploadees \\
+fichier\_contrat & varchar & Modele contrat bailleur \\
+statut & enum & en\_attente/publie/loue/vendu/retire \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{contrats}
+\begin{center}
+\begin{tabular}{|p{3.5cm}|p{3cm}|p{6cm}|}
+\hline
+\textbf{Colonne} & \textbf{Type} & \textbf{Description} \\
+\hline
+id & bigint PK & Identifiant \\
+demande\_id & FK demandes & Demande liee \\
+bailleur\_id & FK users & Bailleur \\
+locataire\_id & FK users & Client locataire \\
+numero & varchar UNIQUE & Ex: CTR-2026-00001 \\
+type & enum & bail / vente \\
+montant & decimal(15,2) & Loyer ou prix \\
+fichier\_contrat & varchar & PDF modele bailleur \\
+fichier\_signe\_client & varchar & PDF signe par client \\
+signe\_client\_at & timestamp & Date signature client \\
+valide\_bailleur\_at & timestamp & Date validation bailleur \\
+statut & enum & brouillon/en\_attente\_signature/signe/valide/resilie \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{paiements}
+\begin{center}
+\begin{tabular}{|p{3.5cm}|p{3cm}|p{6cm}|}
+\hline
+\textbf{Colonne} & \textbf{Type} & \textbf{Description} \\
+\hline
+contrat\_id & FK contrats & Contrat lie \\
+reference & varchar & Code unique (TRX-XXXX) \\
+montant & decimal(15,2) & Montant brut \\
+commission\_taux & decimal(5,2) & Taux applique (\%) \\
+commission\_montant & decimal(15,2) & Montant commission \\
+montant\_net & decimal(15,2) & Net pour le bailleur \\
+mode & enum & espece/cheque/wave/orange\_money/carte \\
+statut & enum & en\_attente/confirme/echoue \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{settings (parametres admin)}
+\begin{center}
+\begin{tabular}{|p{4cm}|p{3cm}|p{6cm}|}
+\hline
+\textbf{Cle} & \textbf{Defaut} & \textbf{Description} \\
+\hline
+commission\_taux & 5 & Taux de commission (\%) \\
+commission\_active & 1 & Activer/desactiver \\
+plateforme\_nom & KerConnect & Nom de la plateforme \\
+plateforme\_email & contact@naratechvision.com & Email contact \\
+\hline
+\end{tabular}
+\end{center}
+
+% ─────────────────────────────────────────────
+\section{Flux Fonctionnels}
+% ─────────────────────────────────────────────
+
+\subsection{Flux d'Authentification}
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.0cm]
+\node[box] (s1) {1. Inscription\\{\tiny email + password + role}};
+\node[box, below=of s1] (s2) {2. OTP 4 chiffres\\{\tiny envoye par Gmail SMTP}};
+\node[box, below=of s2] (s3) {3. Verification OTP\\{\tiny /auth/verify-otp}};
+\node[box, below=of s3] (s4) {4. Connexion\\{\tiny email + password}};
+\node[gbox, below=of s4] (s5) {5. Token Bearer (7 jours)\\{\tiny + cookies kc\_auth / kc\_role}};
+\node[gbox, below=of s5] (s6) {6. Redirection dashboard\\{\tiny selon role}};
+\draw[arr] (s1) -- (s2);
+\draw[arr] (s2) -- (s3);
+\draw[arr] (s3) -- (s4);
+\draw[arr] (s4) -- (s5);
+\draw[arr] (s5) -- (s6);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Flux Contrat (Fonctionnalite Centrale)}
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.85cm]
+\node[box, text width=5cm] (f1) {1. Client fait une demande};
+\node[box, text width=5cm, below=of f1] (f2) {2. Bailleur accepte depuis /bailleur/demandes/\{id\}};
+\node[gbox, text width=5cm, below=of f2] (f3) {3. Contrat cree automatiquement\\{\tiny statut: en\_attente\_signature}};
+\node[box, text width=5cm, below=of f3] (f4) {4. Bailleur uploade le PDF du contrat};
+\node[dbox, text width=5cm, below=of f4] (f5) {5. Email automatique au client};
+\node[box, text width=5cm, below=of f5] (f6) {6. Client telecharge, signe manuscritement};
+\node[box, text width=5cm, below=of f6] (f7) {7. Client uploade le PDF signe};
+\node[dbox, text width=5cm, below=of f7] (f8) {8. Email bailleur : client a signe};
+\node[box, text width=5cm, below=of f8] (f9) {9. Bailleur valide la signature};
+\node[gbox, text width=5cm, below=of f9] (f10) {10. Client peut payer\\{\tiny statut: valide}};
+\draw[arr] (f1) -- (f2);
+\draw[arr] (f2) -- (f3);
+\draw[arr] (f3) -- (f4);
+\draw[arr] (f4) -- (f5);
+\draw[arr] (f5) -- (f6);
+\draw[arr] (f6) -- (f7);
+\draw[arr] (f7) -- (f8);
+\draw[arr] (f8) -- (f9);
+\draw[arr] (f9) -- (f10);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Flux Paiement avec Commission}
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.2cm and 2cm]
+\node[box] (p1) {Client choisit le mode\\{\tiny Wave / OM / Carte / Especes}};
+\node[box, below=of p1] (p2) {POST /v1/paiements\\{\tiny Verifie: contrat.statut = valide}};
+\node[gbox, below left=1.5cm and 1.5cm of p2] (p3a) {Mobile Money / Carte\\{\tiny Webhook PayDunya}};
+\node[dbox, below right=1.5cm and 1.5cm of p2] (p3b) {Especes / Cheque\\{\tiny Bailleur confirme manuellement}};
+\node[gbox, below=3.5cm of p2] (p4) {Statut: confirme};
+\node[dbox, below=of p4] (p5) {Commission prelevee\\{\tiny ex: 5\% de 200 000 = 10 000 FCFA}};
+\node[box, below=of p5] (p6) {Net bailleur enregistre\\{\tiny montant\_net = 190 000 FCFA}};
+\draw[arr] (p1) -- (p2);
+\draw[arr] (p2) -- (p3a);
+\draw[arr] (p2) -- (p3b);
+\draw[arr] (p3a) -- (p4);
+\draw[arr] (p3b) -- (p4);
+\draw[arr] (p4) -- (p5);
+\draw[arr] (p5) -- (p6);
+\end{tikzpicture}
+\end{center}
+
+% ─────────────────────────────────────────────
+\section{API REST -- Reference Complete}
+% ─────────────────────────────────────────────
+
+Prefixe : \texttt{/api/v1/} \quad Authentification : \texttt{Authorization: Bearer \{token\}}
+
+\subsection{Authentification}
+\begin{longtable}{|p{1.5cm}|p{5.5cm}|p{2cm}|p{4cm}|}
+\hline
+\textbf{Verb} & \textbf{Endpoint} & \textbf{Auth} & \textbf{Description} \\
+\hline
+\endhead
+POST & /auth/login & Non & Connexion \\
+POST & /auth/register & Non & Inscription \\
+POST & /auth/verify-otp & Non & Verification OTP \\
+POST & /auth/resend-otp & Non & Renvoyer OTP \\
+POST & /auth/forgot-password & Non & Reset password \\
+POST & /auth/reset-password & Non & Nouveau password \\
+POST & /logout & Oui & Revoquer token \\
+GET & /me & Oui & Profil connecte \\
+\hline
+\end{longtable}
+
+\subsection{Biens, Demandes, Contrats, Paiements}
+\begin{longtable}{|p{1.5cm}|p{6cm}|p{2cm}|p{3cm}|}
+\hline
+\textbf{Verb} & \textbf{Endpoint} & \textbf{Auth} & \textbf{Description} \\
+\hline
+\endhead
+GET & /biens & Non & Catalogue public \\
+GET & /biens/\{id\} & Non & Detail bien \\
+GET/POST & /bailleur/biens & Bailleur & Mes biens / Creer \\
+PUT/DELETE & /bailleur/biens/\{id\} & Bailleur & Modifier / Supprimer \\
+GET/POST & /client/demandes & Client & Mes demandes / Creer \\
+PUT & /bailleur/demandes/\{id\} & Bailleur & Accepter/Refuser \\
+POST & /contrats/\{id\}/upload-modele & Bailleur & PDF contrat \\
+POST & /contrats/\{id\}/upload-signe & Client & PDF signe \\
+POST & /contrats/\{id\}/valider & Bailleur & Valider signature \\
+POST & /paiements & Oui & Initier paiement \\
+POST & /paiements/\{id\}/confirmer & Bailleur & Confirmer \\
+\hline
+\end{longtable}
+
+\subsection{Administration}
+\begin{longtable}{|p{1.5cm}|p{6cm}|p{2cm}|p{3cm}|}
+\hline
+\textbf{Verb} & \textbf{Endpoint} & \textbf{Auth} & \textbf{Description} \\
+\hline
+\endhead
+GET & /admin/dashboard & Admin & Stats globales \\
+GET/DELETE & /admin/users/\{id\} & Admin & Detail / Supprimer \\
+PUT & /admin/users/\{id\}/toggle & Admin & Activer/Desactiver \\
+PUT & /admin/annonces/\{id\}/statut & Admin & Publier/Retirer \\
+GET & /admin/settings & Admin & Parametres \\
+PUT & /admin/settings & Admin & Modifier commission \\
+GET & /admin/commissions & Admin & Revenus plateforme \\
+\hline
+\end{longtable}
+
+\subsection{Fonctionnalites Transverses}
+\begin{longtable}{|p{1.5cm}|p{6cm}|p{2cm}|p{3cm}|}
+\hline
+\textbf{Verb} & \textbf{Endpoint} & \textbf{Auth} & \textbf{Description} \\
+\hline
+\endhead
+POST & /favoris/toggle & Oui & Ajouter/retirer favori \\
+GET & /notifications & Oui & Activites recentes \\
+POST & /avis & Oui & Laisser un avis (1-5) \\
+GET/POST & /alertes & Oui & Alertes biens \\
+POST & /client/demandes/\{id\}/message & Client & Message au bailleur \\
+POST & /bailleur/demandes/\{id\}/message & Bailleur & Reponse au client \\
+POST & /contact & Oui & Formulaire conseiller \\
+\hline
+\end{longtable}
+
+% ─────────────────────────────────────────────
+\section{Fonctionnalites Innovantes}
+% ─────────────────────────────────────────────
+
+\subsection{Commission Automatique}
+
+La plateforme preleve un pourcentage configurable sur chaque paiement confirme.
+
+\begin{center}
+\begin{tabular}{|l|r|}
+\hline
+Loyer mensuel & 200 000 FCFA \\
+Commission (5\%) & 10 000 FCFA $\to$ Naratechvision \\
+\textbf{Net bailleur} & \textbf{190 000 FCFA} \\
+\hline
+\end{tabular}
+\end{center}
+
+L'admin peut modifier le taux depuis \texttt{/admin/settings} et consulter
+le tableau de bord des revenus cumules sur \texttt{/admin/commissions}.
+
+\subsection{Score de Confiance}
+
+Apres validation contrat + paiement confirme, les deux parties se notent
+mutuellement de 1 a 5 etoiles avec commentaire. La note moyenne est
+affichee sur chaque bien et le badge ``Verifie'' est attribuable par l'admin.
+
+\subsection{Alertes Biens}
+
+Les clients creent des alertes (ville + nature + type + prix max).
+Lors de la publication d'un nouveau bien correspondant, une notification
+est envoyee automatiquement.
+
+\subsection{Messagerie Integree}
+
+Client et bailleur s'envoient des messages depuis la plateforme via emails
+avec \texttt{reply-to} configure pour permettre la reponse directe par email.
+
+\subsection{Rapport Mensuel Bailleur}
+
+La page \texttt{/bailleur/rapport} affiche un rapport filtre par mois/annee :
+total brut, commissions, net recu, tableau detaille, export PDF (\texttt{window.print()}).
+
+\subsection{Notifications Temps Reel}
+
+Polling 30 secondes sur \texttt{GET /v1/notifications} :
+demandes recues, paiements en attente, contrats signes par le client.
+
+% ─────────────────────────────────────────────
+\section{Securite}
+% ─────────────────────────────────────────────
+
+\begin{itemize}
+  \item \textbf{Tokens :} Sanctum Bearer, TTL 7 jours, revocation a la deconnexion
+  \item \textbf{Middleware roles :} \texttt{role:client}, \texttt{role:bailleur}, \texttt{role:admin} sur chaque groupe
+  \item \textbf{OTP :} Code 4 chiffres, expiration 15 min, 3 tentatives max
+  \item \textbf{Rate limiting :} 5 tentatives login, blocage 60s
+  \item \textbf{Paiement bloque :} Backend verifie \texttt{contrat.statut = valide}
+  \item \textbf{Uploads :} Validation MIME stricte (PDF/images seulement), max 20 Mo
+  \item \textbf{CORS :} Configure via Laravel pour accepter uniquement le domaine frontend
+\end{itemize}
+
+% ─────────────────────────────────────────────
+\section{Configuration et Demarrage}
+% ─────────────────────────────────────────────
+
+\subsection{Variables d'Environnement Backend}
+
+\begin{lstlisting}[caption=backend/.env (extrait)]
+APP_URL=http://localhost:8000
+FRONTEND_URL=http://localhost:3000
+DB_CONNECTION=mysql
+DB_DATABASE=kerconnect
+MAIL_MAILER=smtp
+MAIL_SCHEME=smtps
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=465
+MAIL_USERNAME=votre@gmail.com
+MAIL_PASSWORD=xxxx xxxx xxxx xxxx
+\end{lstlisting}
+
+\subsection{Commandes de Demarrage}
+
+\begin{lstlisting}[language=bash, caption=Lancement en developpement]
+# Backend (avec limites upload)
+php -d upload_max_filesize=20M -d post_max_size=50M artisan serve
+
+# Frontend
+npm run dev
+
+# Initialisation (premiere installation)
+php artisan migrate
+php artisan db:seed       # Admin + settings commission 5%
+php artisan storage:link  # Lien /public/storage
+\end{lstlisting}
+
+\subsection{Compte Administrateur par Defaut}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Email & demehawoly@gmail.com \\
+Mot de passe & KerConnect2026! \\
+URL & /admin/dashboard \\
+\hline
+\end{tabular}
+\end{center}
+
+% ─────────────────────────────────────────────
+\section{Modele Economique}
+% ─────────────────────────────────────────────
+
+\begin{center}
+\begin{tabular}{|p{4cm}|p{9cm}|}
+\hline
+\textbf{Source de revenus} & \textbf{Description} \\
+\hline
+Commission transactions & 5\% configurable sur chaque paiement confirme \\
+\hline
+Abonnement premium & (prevu) Badge Verifie, visibilite accrue bailleur \\
+\hline
+Publicite ciblee & (prevu) Annonces sponsorisees catalogue \\
+\hline
+\end{tabular}
+\end{center}
+
+\textbf{Projection :} 100 logements a 200 000 FCFA/mois avec commission 5\%
+$\Rightarrow$ \textbf{1 000 000 FCFA/mois} de revenus plateforme.
+
+% ─────────────────────────────────────────────
+\section{Roadmap}
+% ─────────────────────────────────────────────
+
+\begin{center}
+\begin{tabular}{|p{3cm}|p{10cm}|}
+\hline
+\textbf{Phase} & \textbf{Fonctionnalites} \\
+\hline
+\textbf{V1 (Actuel)} & OTP, catalogue, demandes, contrats PDF, paiements Wave/OM/especes, commission auto, score confiance, alertes, rapport mensuel, messagerie integree \\
+\hline
+\textbf{V2 Court terme} & Visite virtuelle 3D, comparateur biens, Google Maps dynamique, app mobile React Native \\
+\hline
+\textbf{V3 Moyen terme} & IA recommandation, PayDunya production, gestion cautions escrow, abonnements premium \\
+\hline
+\textbf{V4 Long terme} & Expansion Cote d'Ivoire / Mali / Cameroun, partenariats bancaires \\
+\hline
+\end{tabular}
+\end{center}
+
+% ─────────────────────────────────────────────
+\section*{Conclusion}
+% ─────────────────────────────────────────────
+
+KerConnect est une plateforme immobiliere complete et innovante concue pour le marche
+senegalais. Elle couvre l'integralite du parcours immobilier numerique : recherche de bien,
+demande, signature electronique de contrat PDF, paiement securise avec commission automatique.
+
+Son architecture moderne (Next.js 16 + Laravel 13 + MySQL), ses fonctionnalites
+differenciantes et son modele economique solide en font une solution prete pour le
+deploiement en production.
+
+\vspace{1em}
+\noindent\rule{\textwidth}{0.5pt}
+\begin{center}
+{\small\textcolor{kergray}{KerConnect -- Naratechvision -- contact@naratechvision.com -- Version 2.0 -- Juin 2026}}
+\end{center}
+
+\end{document}

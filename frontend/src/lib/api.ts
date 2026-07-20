@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useAuthStore } from '@/store/auth.store'
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api',
@@ -8,15 +9,26 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
   if (token) config.headers.Authorization = `Bearer ${token}`
+
+  // Pour les FormData, laisser le navigateur poser Content-Type avec la boundary
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type']
+  }
+
   return config
 })
+
+let redirecting = false
 
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem('token')
-      window.location.href = '/auth/login'
+    if (err.response?.status === 401 && typeof window !== 'undefined' && !redirecting) {
+      redirecting = true
+      // Vider store + cookies + token, puis rediriger sans reboucler
+      useAuthStore.getState().clearAuth()
+      window.location.replace('/auth/login?expired=1')
+      setTimeout(() => { redirecting = false }, 3000)
     }
     return Promise.reject(err)
   }

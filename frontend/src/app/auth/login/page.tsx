@@ -1,14 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
+import { KerConnectLogo } from '@/components/ui/Logo'
 import api from '@/lib/api'
 import { useAuthStore } from '@/store/auth.store'
-import { Button } from '@/components/ui/button'
+import { Eye, EyeOff } from 'lucide-react'
 
 const schema = z.object({
   email:    z.string().email('Email invalide'),
@@ -24,10 +26,17 @@ const ROLE_REDIRECT: Record<string, string> = {
   admin:        '/admin/dashboard',
 }
 
-export default function LoginPage() {
+
+function LoginForm() {
   const router   = useRouter()
+  const params   = useSearchParams()
   const setAuth  = useAuthStore((s) => s.setAuth)
-  const [error, setError] = useState('')
+  const [error, setError]   = useState('')
+  const [showPwd, setShowPwd] = useState(false)
+
+  const verified = params.get('verified') === '1'
+  const expired  = params.get('expired')  === '1'
+  const reset    = params.get('reset')    === '1'
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -38,76 +47,156 @@ export default function LoginPage() {
     try {
       const res = await api.post('/v1/auth/login', data)
       setAuth(res.data.user, res.data.token)
-      router.push(ROLE_REDIRECT[res.data.role] || '/')
+      const role = res.data.role
+      const user = res.data.user
+      // Bailleur/propriétaire sans frais d'inscription payés → page dédiée
+      if (['bailleur', 'proprietaire'].includes(role) && !user.inscription_payee) {
+        router.push('/auth/paiement-inscription')
+        return
+      }
+      router.push(ROLE_REDIRECT[role] || '/')
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } }
-      setError(e.response?.data?.message || 'Erreur de connexion.')
+      if (!e.response) {
+        setError('Impossible de contacter le serveur. Vérifiez que le backend est démarré.')
+        return
+      }
+      setError(e.response?.data?.message || 'Identifiants incorrects.')
     }
   }
 
   return (
     <div className="min-h-screen flex">
-      {/* Panneau gauche */}
-      <div className="hidden lg:flex lg:w-1/2 bg-blue-900 text-white flex-col justify-center px-16">
-        <h1 className="text-4xl font-bold mb-4">KerConnect</h1>
-        <p className="text-xl text-blue-200">Louez et achetez des appartements, simplement et en ligne</p>
-        <p className="mt-6 text-blue-300">Plus de 5 000 biens vérifiés · Sans frais cachés</p>
-      </div>
 
-      {/* Panneau droit */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center px-8">
-        <div className="w-full max-w-md">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Connexion</h2>
-          <p className="text-gray-500 mb-8">Accédez à votre espace personnel</p>
+      {/* ══════════════════════════
+          PANNEAU GAUCHE — Formulaire
+      ══════════════════════════ */}
+      <div className="w-full lg:w-[45%] flex items-center justify-center px-8 py-12 bg-white">
+        <div className="w-full max-w-sm">
 
+          <div className="mb-8">
+            <KerConnectLogo width={130} />
+          </div>
+
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">Connexion</h2>
+          <p className="text-gray-400 text-sm mb-8">
+            Accédez à votre espace pour suivre vos démarches en ligne
+          </p>
+
+          {verified && <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-5 text-sm">✅ Email vérifié, vous pouvez vous connecter.</div>}
+          {reset    && <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-5 text-sm">✅ Mot de passe réinitialisé avec succès.</div>}
+          {expired  && <div className="bg-orange-50 border border-orange-200 text-orange-700 px-4 py-3 rounded-xl mb-5 text-sm">⚠️ Session expirée, veuillez vous reconnecter.</div>}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-5 text-sm">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* Identifiant */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Identifiant
+              </label>
               <input
                 {...register('email')}
                 type="email"
                 placeholder="votre@email.com"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#E05C52] transition-colors placeholder-gray-300"
               />
-              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+              )}
             </div>
 
+            {/* Mot de passe */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
-              <input
-                {...register('password')}
-                type="password"
-                placeholder="••••••••"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              />
-              {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Mot de passe
+              </label>
+              <div className="relative">
+                <input
+                  {...register('password')}
+                  type={showPwd ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#E05C52] transition-colors pr-11"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPwd(!showPwd)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+              )}
             </div>
 
+            {/* Lien mot de passe oublié */}
             <div className="text-right">
-              <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:underline">
+              <Link href="/auth/forgot-password" className="text-sm hover:underline" style={{ color: '#E05C52' }}>
                 Mot de passe oublié ?
               </Link>
             </div>
 
-            <Button type="submit" disabled={isSubmitting} className="w-full bg-blue-900 hover:bg-blue-800 text-white py-3">
-              {isSubmitting ? 'Connexion...' : 'Se connecter'}
-            </Button>
+            {/* Bouton connexion */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-3 rounded-xl text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-60"
+              style={{ backgroundColor: '#E05C52' }}
+            >
+              {isSubmitting ? 'Connexion en cours...' : 'Se connecter'}
+            </button>
           </form>
 
-          <p className="mt-6 text-center text-gray-500">
-            Pas encore de compte ?{' '}
-            <Link href="/auth/register" className="text-blue-600 hover:underline font-medium">
+          {/* Google OAuth — activé au déploiement par Hawoly */}
+
+          <p className="mt-6 text-center text-sm text-gray-500">
+            Vous n&apos;avez pas de compte ?{' '}
+            <Link href="/auth/register" className="font-semibold hover:underline" style={{ color: '#E05C52' }}>
               S&apos;inscrire
             </Link>
           </p>
         </div>
       </div>
+
+      {/* ══════════════════════════
+          PANNEAU DROIT — Image + texte
+      ══════════════════════════ */}
+      <div className="hidden lg:flex lg:w-[55%] relative overflow-hidden">
+        <Image
+          src="https://images.unsplash.com/photo-1613977257363-707ba9348227?w=1200&q=85"
+          alt="Maison KerConnect"
+          fill
+          priority
+          className="object-cover"
+          sizes="55vw"
+        />
+        {/* Overlay dégradé pour la lisibilité du texte */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+        {/* Texte en bas de l'image */}
+        <div className="absolute bottom-12 left-12 right-12 text-white">
+          <h2 className="text-4xl font-extrabold leading-tight mb-2">
+            Louez et achetez des
+            <br />
+            appartements,
+            <br />
+            <span style={{ color: '#E05C52' }}>simplement et en ligne</span>
+          </h2>
+        </div>
+      </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-[#E05C52] border-t-transparent rounded-full" /></div>}>
+      <LoginForm />
+    </Suspense>
   )
 }

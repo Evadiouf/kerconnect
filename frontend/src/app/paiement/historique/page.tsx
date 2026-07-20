@@ -52,7 +52,7 @@ function HistoriqueContent() {
     window.URL.revokeObjectURL(url)
   }
 
-  const total = paiements.filter(p => p.statut === 'confirme').reduce((s, p) => s + p.montant, 0)
+  const total = paiements.filter(p => p.statut === 'confirme').reduce((s, p) => s + Number(p.montant), 0)
 
   return (
     <DashboardLayout>
@@ -90,8 +90,8 @@ function HistoriqueContent() {
                   const Icon = cfg.icon
                   return (
                     <tr key={p.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-4 font-mono text-sm text-blue-900 font-medium">{p.reference}</td>
-                      <td className="px-4 py-4 font-bold text-gray-900">{p.montant.toLocaleString('fr-FR')} FCFA</td>
+                      <td className="px-4 py-4 font-mono text-sm font-medium" style={{ color: '#4338CA' }}>{p.reference}</td>
+                      <td className="px-4 py-4 font-bold text-gray-900">{Number(p.montant).toLocaleString('fr-FR')} FCFA</td>
                       <td className="px-4 py-4 text-sm text-gray-600">{MODE_LABELS[p.mode] || p.mode}</td>
                       <td className="px-4 py-4 text-sm text-gray-500">{p.libelle}</td>
                       <td className="px-4 py-4 text-sm text-gray-500">
@@ -105,7 +105,7 @@ function HistoriqueContent() {
                       <td className="px-4 py-4">
                         {p.statut === 'confirme' && (
                           <button onClick={() => downloadRecu(p.id, p.reference)}
-                            className="text-gray-400 hover:text-blue-600 transition-colors" title="Télécharger le reçu">
+                            className="text-gray-400 transition-colors hover:text-[#4338CA]" title="Télécharger le reçu">
                             <Download size={16} />
                           </button>
                         )}

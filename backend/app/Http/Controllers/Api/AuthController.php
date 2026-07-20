@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -40,7 +41,7 @@ class AuthController extends Controller
 
         RateLimiter::clear($key);
 
-        $token = $user->createToken('auth_token', ['*'], now()->addMinutes(15))->plainTextToken;
+        $token = $user->createToken('auth_token', ['*'], now()->addDays(7))->plainTextToken;
 
         return response()->json([
             'user'  => $user,
@@ -53,19 +54,34 @@ class AuthController extends Controller
     public function register(Request $request): JsonResponse
     {
         $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
-            'role'     => 'required|in:client,bailleur,proprietaire',
-            'phone'    => 'nullable|string|max:20',
+            'name'                  => 'required|string|max:255',
+            'email'                 => 'required|email|unique:users,email',
+            'password'              => 'required|string|min:8|confirmed',
+            'role'                  => 'required|in:client,bailleur,proprietaire',
+            'phone'                 => 'nullable|string|max:20',
+            'ninea'                 => 'nullable|string|max:50',
+            'registre_commerce'     => 'nullable|string|max:100',
+            'adresse_structure'     => 'nullable|string|max:255',
+            'type_bien'             => 'nullable|string|max:255',
+            'contrat_location'      => 'nullable|file|mimes:jpeg,jpg,png,pdf,mp4|max:10240',
         ]);
 
+        $contratPath = null;
+        if ($request->hasFile('contrat_location')) {
+            $contratPath = $request->file('contrat_location')->store('contrats_inscription', 'public');
+        }
+
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => $request->role,
-            'phone'    => $request->phone,
+            'name'               => $request->name,
+            'email'              => $request->email,
+            'password'           => Hash::make($request->password),
+            'role'               => $request->role,
+            'phone'              => $request->phone,
+            'ninea'              => $request->ninea,
+            'registre_commerce'  => $request->registre_commerce,
+            'adresse_structure'  => $request->adresse_structure,
+            'type_bien'          => $request->type_bien,
+            'contrat_location'   => $contratPath,
         ]);
 
         // Envoyer OTP de vérification
@@ -75,12 +91,6 @@ class AuthController extends Controller
             'message' => 'Compte créé. Vérifiez votre email pour le code OTP.',
             'user'    => $user,
         ];
-
-        // En développement : retourner le code OTP directement
-        if (config('app.env') === 'local') {
-            $response['otp_dev'] = $otp;
-            $response['otp_message'] = 'Mode développement — code OTP visible ici';
-        }
 
         return response()->json($response, 201);
     }
@@ -132,9 +142,7 @@ class AuthController extends Controller
 
         $otp = $this->generateAndSendOtp($request->email, $request->type);
 
-        $response = ['message' => 'Nouveau code OTP envoyé.'];
-        if (config('app.env') === 'local') $response['otp_dev'] = $otp;
-        return response()->json($response);
+        return response()->json(['message' => 'Nouveau code OTP envoyé.']);
     }
 
     // ── Mot de passe oublié
@@ -142,22 +150,36 @@ class AuthController extends Controller
     {
         $request->validate(['email' => 'required|email|exists:users,email']);
         $otp = $this->generateAndSendOtp($request->email, 'reset_password');
-        $response = ['message' => 'Code OTP envoyé à votre email.'];
-        if (config('app.env') === 'local') $response['otp_dev'] = $otp;
-        return response()->json($response);
+        return response()->json(['message' => 'Code OTP envoyé à votre email.']);
     }
 
     // ── Réinitialiser mot de passe
     public function resetPassword(Request $request): JsonResponse
     {
         $request->validate([
-            'email'                 => 'required|email|exists:users,email',
-            'password'              => 'required|string|min:8|confirmed',
+            'email'    => 'required|email|exists:users,email',
+            'password' => 'required|string|min:8|confirmed',
         ]);
+
+        // Vérifier qu'un OTP reset_password a bien été validé dans les 15 dernières minutes
+        $otpVerifie = Otp::where('email', $request->email)
+            ->where('type', 'reset_password')
+            ->where('used', true)
+            ->where('updated_at', '>=', now()->subMinutes(15))
+            ->exists();
+
+        if (!$otpVerifie) {
+            return response()->json([
+                'message' => 'Vérifiez votre code OTP avant de réinitialiser votre mot de passe.',
+            ], 403);
+        }
 
         User::where('email', $request->email)->update([
             'password' => Hash::make($request->password),
         ]);
+
+        // Supprimer les OTP reset_password de cet email
+        Otp::where('email', $request->email)->where('type', 'reset_password')->delete();
 
         return response()->json(['message' => 'Mot de passe réinitialisé avec succès.']);
     }
@@ -173,6 +195,51 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         return response()->json($request->user());
+    }
+
+    // ── Google OAuth — Redirect
+    public function googleRedirect()
+    {
+        return Socialite::driver('google')
+            ->stateless()
+            ->redirect();
+    }
+
+    // ── Google OAuth — Callback
+    public function googleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->stateless()->user();
+        } catch (\Exception $e) {
+            return redirect(env('FRONTEND_URL', 'http://localhost:3000') . '/auth/login?error=google_failed');
+        }
+
+        // Trouver ou créer l'utilisateur
+        $user = User::where('email', $googleUser->getEmail())->first();
+
+        if (!$user) {
+            $user = User::create([
+                'name'              => $googleUser->getName(),
+                'email'             => $googleUser->getEmail(),
+                'password'          => bcrypt(str()->random(32)),
+                'role'              => 'client',
+                'email_verified_at' => now(),
+                'is_active'         => true,
+            ]);
+        } elseif (!$user->email_verified_at) {
+            $user->update(['email_verified_at' => now()]);
+        }
+
+        $token = $user->createToken('google-auth')->plainTextToken;
+
+        // Redirect vers le frontend avec token
+        $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+        return redirect("{$frontendUrl}/auth/google/success?token=" . urlencode($token) . "&user=" . urlencode(json_encode([
+            'id'    => $user->id,
+            'name'  => $user->name,
+            'email' => $user->email,
+            'role'  => $user->role,
+        ])));
     }
 
     // ── Générer et envoyer OTP (retourne le code pour usage interne)

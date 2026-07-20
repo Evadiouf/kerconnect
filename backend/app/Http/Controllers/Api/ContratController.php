@@ -59,9 +59,120 @@ class ContratController extends Controller
         return response()->json(['message' => 'Signature enregistrée.', 'contrat' => $contrat->fresh()]);
     }
 
-    public function show(string $id): \Illuminate\Http\JsonResponse
+    public function show(\Illuminate\Http\Request $request, string $id): \Illuminate\Http\JsonResponse
     {
         $contrat = \App\Models\Contrat::with(['bien', 'bailleur:id,name,email', 'locataire:id,name,email', 'paiements'])->findOrFail($id);
+        $user = $request->user();
+        if ($contrat->bailleur_id !== $user->id && $contrat->locataire_id !== $user->id && $user->role !== 'admin') {
+            return response()->json(['message' => 'Non autorisé.'], 403);
+        }
         return response()->json($contrat);
+    }
+
+    // Bailleur : envoyer le modèle de contrat (PDF)
+    public function uploadModele(\Illuminate\Http\Request $request, string $id): \Illuminate\Http\JsonResponse
+    {
+        $request->validate(['fichier' => 'required|mimes:pdf|max:10240']);
+
+        $contrat = \App\Models\Contrat::with(['locataire', 'bien:id,titre'])->where('bailleur_id', $request->user()->id)->findOrFail($id);
+        $path = $request->file('fichier')->store("contrats/{$contrat->id}/modele", 'public');
+
+        $contrat->update([
+            'fichier_contrat' => $path,
+            'statut'          => 'en_attente_signature',
+        ]);
+
+        // Notifier le client par email
+        if ($contrat->locataire?->email) {
+            try {
+                \Illuminate\Support\Facades\Mail::raw(
+                    "Bonjour {$contrat->locataire->name},\n\nLe bailleur vous a envoyé le contrat pour le bien \"{$contrat->bien?->titre}\".\n\nConnectez-vous à la plateforme KerConnect pour :\n1. Télécharger le contrat\n2. Le signer manuscritement\n3. Le renvoyer en PDF via la plateforme\n\nRéférence contrat : {$contrat->numero}\nMontant : " . number_format($contrat->montant, 0, ',', ' ') . " FCFA\n\nCordialement,\nL'équipe KerConnect",
+                    function ($m) use ($contrat) {
+                        $m->to($contrat->locataire->email, $contrat->locataire->name)
+                          ->subject("KerConnect — Votre contrat est prêt à signer");
+                    }
+                );
+            } catch (\Exception $e) {}
+        }
+
+        return response()->json([
+            'message'  => 'Modèle de contrat envoyé au client.',
+            'url'      => url("storage/{$path}"),
+            'contrat'  => $contrat->fresh(),
+        ]);
+    }
+
+    // Client : uploader le contrat signé (PDF/image)
+    public function uploadSigne(\Illuminate\Http\Request $request, string $id): \Illuminate\Http\JsonResponse
+    {
+        $request->validate(['fichier' => 'required|mimes:pdf,jpg,jpeg,png|max:10240']);
+
+        $contrat = \App\Models\Contrat::with(['bailleur', 'locataire', 'bien:id,titre'])
+            ->where('locataire_id', $request->user()->id)->findOrFail($id);
+        $path = $request->file('fichier')->store("contrats/{$contrat->id}/signe", 'public');
+
+        $contrat->update([
+            'fichier_signe_client' => $path,
+            'signe_client_at'      => now(),
+            'statut'               => 'signe',
+        ]);
+
+        // Notifier le bailleur par email
+        if ($contrat->bailleur?->email) {
+            try {
+                \Illuminate\Support\Facades\Mail::raw(
+                    "Bonjour {$contrat->bailleur->name},\n\n{$contrat->locataire->name} a signé et renvoyé le contrat pour \"{$contrat->bien?->titre}\".\n\nConnectez-vous à KerConnect pour :\n1. Consulter le document signé\n2. Valider la signature pour autoriser le paiement\n\nRéférence : {$contrat->numero}\n\nCordialement,\nL'équipe KerConnect",
+                    function ($m) use ($contrat) {
+                        $m->to($contrat->bailleur->email, $contrat->bailleur->name)
+                          ->subject("KerConnect — {$contrat->locataire->name} a signé votre contrat");
+                    }
+                );
+            } catch (\Exception $e) {}
+        }
+
+        return response()->json([
+            'message' => 'Document signé envoyé au bailleur.',
+            'url'     => url("storage/{$path}"),
+            'contrat' => $contrat->fresh(),
+        ]);
+    }
+
+    // Bailleur : valider le contrat signé par le client
+    public function valider(\Illuminate\Http\Request $request, string $id): \Illuminate\Http\JsonResponse
+    {
+        $contrat = \App\Models\Contrat::where('bailleur_id', $request->user()->id)->findOrFail($id);
+
+        if (!$contrat->fichier_signe_client) {
+            return response()->json(['message' => 'Le client n\'a pas encore envoyé son contrat signé.'], 422);
+        }
+
+        $contrat->update([
+            'statut'              => 'valide',
+            'valide_bailleur_at'  => now(),
+        ]);
+
+        return response()->json(['message' => 'Contrat validé. Le client peut maintenant payer.', 'contrat' => $contrat->fresh()]);
+    }
+
+    public function mesContrats(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
+    {
+        $contrats = \App\Models\Contrat::with(['bien:id,titre,adresse,ville', 'bailleur:id,name'])
+            ->where('locataire_id', $request->user()->id)
+            ->latest()
+            ->paginate(10);
+        return response()->json($contrats);
+    }
+
+    public function mesContratsRecu(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
+    {
+        $contrats = \App\Models\Contrat::with([
+            'bien:id,titre,adresse,ville',
+            'locataire:id,name,email,phone',
+            'paiements',
+        ])
+            ->where('bailleur_id', $request->user()->id)
+            ->latest()
+            ->paginate(20);
+        return response()->json($contrats);
     }
 }

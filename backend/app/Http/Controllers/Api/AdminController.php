@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Bien;
 use App\Models\Demande;
 use App\Models\Paiement;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -92,6 +93,28 @@ class AdminController extends Controller
         return response()->json(['message' => "Compte {$action}.", 'user' => $user->fresh()]);
     }
 
+    // ── Vérifier / dévérifier un compte utilisateur
+    public function verifierUser(string $id): JsonResponse
+    {
+        $user = User::findOrFail($id);
+        $user->update(['verifie' => !$user->verifie]);
+        return response()->json([
+            'message' => $user->verifie ? 'Compte vérifié.' : 'Vérification retirée.',
+            'user'    => $user->fresh(),
+        ]);
+    }
+
+    // ── Supprimer définitivement un utilisateur
+    public function deleteUser(string $id): JsonResponse
+    {
+        $user = User::findOrFail($id);
+        if ($user->role === 'admin') {
+            return response()->json(['message' => 'Impossible de supprimer un admin.'], 403);
+        }
+        $user->delete();
+        return response()->json(['message' => 'Utilisateur supprimé définitivement.']);
+    }
+
     // ── Liste annonces (modération)
     public function annonces(Request $request): JsonResponse
     {
@@ -118,5 +141,46 @@ class AdminController extends Controller
         if ($request->mode)   $query->where('mode', $request->mode);
         $paiements = $query->latest()->paginate(20);
         return response()->json($paiements);
+    }
+
+    // ── Paramètres plateforme
+    public function getSettings(): JsonResponse
+    {
+        $settings = Setting::all()->pluck('valeur', 'cle');
+        return response()->json($settings);
+    }
+
+    public function updateSettings(Request $request): JsonResponse
+    {
+        $request->validate([
+            'commission_taux'   => 'sometimes|numeric|min:0|max:50',
+            'commission_active' => 'sometimes|in:0,1',
+            'frais_inscription' => 'sometimes|numeric|min:0',
+        ]);
+
+        foreach ($request->only(['commission_taux', 'commission_active', 'plateforme_nom', 'plateforme_email', 'frais_inscription']) as $cle => $valeur) {
+            Setting::set($cle, $valeur);
+        }
+
+        return response()->json(['message' => 'Paramètres mis à jour.', 'settings' => Setting::all()->pluck('valeur', 'cle')]);
+    }
+
+    // ── Commissions perçues par la plateforme
+    public function commissions(Request $request): JsonResponse
+    {
+        $paiements = Paiement::with(['payeur:id,name', 'contrat.bien:id,titre'])
+            ->where('statut', 'confirme')
+            ->where('commission_montant', '>', 0)
+            ->latest()->paginate(20);
+
+        $totalCommissions = Paiement::where('statut', 'confirme')->sum('commission_montant');
+        $totalTransactions = Paiement::where('statut', 'confirme')->sum('montant');
+
+        return response()->json([
+            'paiements'          => $paiements,
+            'total_commissions'  => $totalCommissions,
+            'total_transactions' => $totalTransactions,
+            'taux_actuel'        => Setting::get('commission_taux', '5'),
+        ]);
     }
 }
