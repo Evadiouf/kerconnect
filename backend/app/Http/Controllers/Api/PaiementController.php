@@ -67,8 +67,9 @@ class PaiementController extends Controller
         $tauxCommission   = $commissionActive ? $contrat->bailleur->tauxCommission() : 0.0;
         $montantBase      = (float) $request->montant_base;
         $cautionMontant   = (float) ($request->caution_montant ?? 0);
-        $commission       = round($montantBase * $tauxCommission / 100, 2);
-        $montantTotal     = $montantBase + $commission + $cautionMontant;
+        // Commission calculée sur (loyer + caution) pour le 1er paiement
+        $commission       = round(($montantBase + $cautionMontant) * $tauxCommission / 100, 2);
+        $montantTotal     = $montantBase + $cautionMontant + $commission;
 
         $paiement = Paiement::create([
             'contrat_id'         => $contrat->id,

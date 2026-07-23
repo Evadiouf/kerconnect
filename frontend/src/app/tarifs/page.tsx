@@ -12,32 +12,30 @@ const PLANS = [
   {
     id: 'starter',
     name: 'Starter',
-    tagline: 'Testez la plateforme',
+    tagline: '30 jours gratuits — puis souscription requise',
     monthlyPrice: 0,
     annualPrice: 0,
-    commission: 5,
     annonces: '2 annonces actives',
     cta: 'Commencer gratuitement',
     href: '/auth/register',
     variant: 'light' as const,
     features: [
+      { text: '30 jours d\'essai offerts', ok: true },
       { text: '2 annonces actives maximum', ok: true },
       { text: 'Réception des demandes de location', ok: true },
       { text: 'Tableau de bord essentiel', ok: true },
       { text: 'Gestion d\'un contrat numérique', ok: true },
       { text: 'Rappels de paiement automatiques', ok: true },
-      { text: 'Mise en avant dans les résultats', ok: false },
-      { text: 'Statistiques de vues par annonce', ok: false },
+      { text: 'Accès suspendu après 30 jours', ok: false },
       { text: 'Support prioritaire (24h)', ok: false },
     ],
   },
   {
     id: 'pro',
     name: 'Pro',
-    tagline: 'Pour les bailleurs actifs',
-    monthlyPrice: 2000,
-    annualPrice: 19900,
-    commission: 4,
+    tagline: 'Développez votre activité locative',
+    monthlyPrice: 5000,
+    annualPrice: 49900,
     annonces: '15 annonces actives',
     cta: 'Passer en Pro',
     href: '/auth/register?forfait=pro',
@@ -55,15 +53,14 @@ const PLANS = [
     ],
   },
   {
-    id: 'agence',
-    name: 'Propriété',
-    tagline: 'Pour les propriétaires & agences',
-    monthlyPrice: 3000,
-    annualPrice: 29900,
-    commission: 3,
+    id: 'promax',
+    name: 'Pro Max',
+    tagline: 'Puissance maximale pour grands portfolios',
+    monthlyPrice: 10000,
+    annualPrice: 99900,
     annonces: 'Annonces illimitées',
-    cta: 'Contacter l\'équipe',
-    href: '/contact',
+    cta: 'Passer en Pro Max',
+    href: '/auth/register?forfait=promax',
     variant: 'dark' as const,
     features: [
       { text: 'Annonces illimitées', ok: true },
@@ -584,14 +581,6 @@ export default function TarifsPage() {
                   )}
                 </div>
 
-                {/* Commission */}
-                <div className={`commission-chip ${v}`}>
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                    <path d="M2 10L10 2M3.5 3h-1.5v1.5M8.5 9H10V7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  Commission {plan.commission}% KerConnect
-                </div>
-
                 <div className={`plan-divider ${v}`} />
 
                 {/* Features */}
@@ -618,11 +607,9 @@ export default function TarifsPage() {
           })}
         </div>
 
-        {/* ── Note commission ── */}
+        {/* ── Note bas de page ── */}
         <p className="tarifs-note">
-          La commission est prélevée sur chaque paiement de loyer.
-          Un bailleur Pro avec un loyer de <strong>200 000 FCFA</strong> économise
-          <strong> 2 000 FCFA/mois de commission</strong> — l'abonnement à 2 000 FCFA/mois s'autofinance dès le premier bien loué.
+          L&apos;essai Starter dure <strong>30 jours</strong>. À l&apos;expiration, l&apos;accès est suspendu jusqu&apos;à souscription d&apos;un forfait Pro ou Pro Max.
           <br />
           Des questions ? <Link href="/contact">Contactez notre équipe</Link>.
         </p>
@@ -631,20 +618,20 @@ export default function TarifsPage() {
         <div className="faq-grid">
           {[
             {
-              q: 'Puis-je changer de forfait à tout moment ?',
-              a: 'Oui. Vous pouvez passer à un forfait supérieur ou inférieur à tout moment depuis votre espace bailleur. Le changement est effectif immédiatement.'
+              q: 'Que se passe-t-il après le mois gratuit ?',
+              a: 'À l\'expiration des 30 jours, votre accès est automatiquement suspendu. Vous pourrez toujours consulter votre tableau de bord mais les fonctionnalités seront désactivées jusqu\'à souscription d\'un forfait Pro ou Pro Max.'
             },
             {
-              q: 'Comment la commission est-elle calculée ?',
-              a: 'La commission est ajoutée au loyer payé par le locataire. Par exemple avec un loyer de 200 000 FCFA en Starter (5 %), le locataire paie 210 000 FCFA. En Pro (4 %), il paie 208 000 FCFA.'
+              q: 'Puis-je changer de forfait à tout moment ?',
+              a: 'Oui. Vous pouvez passer à un forfait supérieur ou inférieur à tout moment depuis votre espace bailleur. Le changement est effectif immédiatement.'
             },
             {
               q: 'Quels modes de paiement sont acceptés ?',
               a: <>Wave, Orange Money, espèces, chèque ou carte bancaire via notre partenaire <strong>PayDunya</strong>. Votre abonnement peut être réglé par Mobile Money.</>
             },
             {
-              q: 'Le forfait Agence est-il sur mesure ?',
-              a: 'Oui. Nous adaptons l\'offre Agence à la taille de votre portefeuille. Contactez notre équipe commerciale pour un devis personnalisé et une démonstration.'
+              q: 'Le forfait Pro Max est-il sur mesure ?',
+              a: 'Non, le Pro Max est un forfait fixe à 10 000 FCFA/mois. Si vous avez des besoins spécifiques (multi-agences, intégration sur mesure), contactez notre équipe commerciale.'
             },
           ].map(({ q, a }) => (
             <div key={q} className="faq-item">

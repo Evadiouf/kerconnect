@@ -56,16 +56,14 @@ function PaiementForm() {
   const [loading, setLoading] = useState(false)
   const [reference, setRef]   = useState('')
 
-  // Simuler la commission (toujours sur le loyer de base uniquement)
+  // Récupérer le taux de commission (on simule sur le loyer seul pour avoir le taux)
   const { data: simulation } = useQuery({
     queryKey: ['simuler-paiement', contratId, montantBase],
     queryFn:  () => api.get('/v1/paiements/simuler', { params: { contrat_id: contratId, montant_base: montantBase } }).then(r => r.data),
     enabled:  !!contratId && montantBase > 0,
     retry:    false,
   })
-  const commissionTaux    = simulation?.commission_taux    ?? 5
-  const commissionMontant = simulation?.commission_montant ?? Math.round(montantBase * 0.05)
-  const loyerPlusCommission = simulation?.montant_total ?? (montantBase + commissionMontant)
+  const commissionTaux = simulation?.commission_taux ?? 5
 
   // Récupérer le contrat (inclut bien.caution_mois + paiements existants)
   const { data: contratData, isLoading: contratLoading } = useQuery({
@@ -86,7 +84,11 @@ function PaiementForm() {
   const cautionMontant    = isPremierPaiement && isLocation && cautionMois > 0
     ? cautionMois * montantBase
     : 0
-  const montantTotal      = loyerPlusCommission + cautionMontant
+
+  // Commission sur (loyer + caution) pour 1er paiement, sur loyer seul sinon
+  const baseCommission    = montantBase + cautionMontant
+  const commissionMontant = Math.round(baseCommission * commissionTaux / 100)
+  const montantTotal      = montantBase + cautionMontant + commissionMontant
 
   // Champs espèce/chèque
   const [nom,  setNom]  = useState('')

@@ -41,7 +41,7 @@ const BAILLEUR_NAV: NavItem[] = [
   { label: 'Gestion des annonces', href: '/bailleur/annonces',  icon: Building2 },
   { label: 'Gestion de demandes',  href: '/bailleur/demandes',  icon: FileText },
   { label: 'Gestion des biens',    href: '/bailleur/biens',     icon: Building2 },
-  { label: 'Paiements',            href: '/bailleur/paiements', icon: CreditCard },
+  { label: 'Transactions',         href: '/bailleur/paiements', icon: CreditCard },
   { label: 'Rapport mensuel',      href: '/bailleur/rapport',   icon: TrendingUp },
 ]
 
