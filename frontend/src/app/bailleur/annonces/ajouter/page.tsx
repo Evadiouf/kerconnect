@@ -70,8 +70,8 @@ export default function AjouterAnnoncePage() {
       await api.post('/v1/bailleur/biens', fd)
       router.push('/bailleur/annonces?success=1')
     } catch (err: unknown) {
-      const e = err as Error
-      setError(e.message || 'Erreur lors de la publication.')
+      const e = err as { response?: { data?: { message?: string } }; message?: string }
+      setError(e.response?.data?.message || e.message || 'Erreur lors de la publication.')
     }
   }
 

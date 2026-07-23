@@ -69,6 +69,29 @@ class BienController extends Controller
             'contrat_modele' => 'nullable|mimes:pdf|max:10240',
         ]);
 
+        // ── Vérifier la limite d'annonces actives selon le forfait
+        $user    = $request->user();
+        $forfait = $user->forfait ?? 'starter';
+
+        // Forfait expiré → revient aux droits Starter
+        if ($forfait !== 'starter' && $user->forfait_expire_at?->isPast()) {
+            $forfait = 'starter';
+        }
+
+        $limites     = ['starter' => 2, 'pro' => 15, 'agence' => PHP_INT_MAX];
+        $limite      = $limites[$forfait] ?? 2;
+        $forfaitNom  = match($forfait) { 'pro' => 'Pro', 'agence' => 'Pro Max', default => 'Starter' };
+
+        if ($limite !== PHP_INT_MAX) {
+            $actives = Bien::where('user_id', $user->id)->where('statut', 'publie')->count();
+            if ($actives >= $limite) {
+                return response()->json([
+                    'message' => "Limite atteinte : le forfait {$forfaitNom} autorise {$limite} annonce(s) active(s) maximum. Passez à un forfait supérieur pour en publier davantage.",
+                    'code'    => 'LIMITE_ANNONCES',
+                ], 422);
+            }
+        }
+
         $bien = Bien::create([
             ...$request->only(['titre','type','nature','prix','caution_mois','description','adresse','ville','surface','chambres','salles_bain','equipements']),
             'user_id' => $request->user()->id,

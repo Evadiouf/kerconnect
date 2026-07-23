@@ -6,6 +6,7 @@ import api from '@/lib/api'
 import Link from 'next/link'
 import { useState } from 'react'
 import { Plus, Eye, Edit, Trash2, Check, X } from 'lucide-react'
+import { useAuthStore } from '@/store/auth.store'
 
 interface Bien {
   id: number; titre: string; type: string; nature: string;
@@ -20,8 +21,12 @@ const STATUT_COLORS: Record<string, string> = {
   retire:     'bg-gray-100 text-gray-500',
 }
 
+const FORFAIT_LIMITE: Record<string, number> = { starter: 2, pro: 15, agence: Infinity }
+const FORFAIT_NOM:   Record<string, string>  = { starter: 'Starter', pro: 'Pro', agence: 'Pro Max' }
+
 export default function AnnoncesPage() {
   const qc = useQueryClient()
+  const { user } = useAuthStore()
   const [confirmId, setConfirmId] = useState<number | null>(null)
 
   const { data, isLoading } = useQuery({
@@ -34,21 +39,59 @@ export default function AnnoncesPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['bailleur-biens'] }),
   })
 
-  const biens: Bien[] = data?.data || []
+  const biens: Bien[]  = data?.data || []
+  const forfait        = user?.forfait ?? 'starter'
+  const limite         = FORFAIT_LIMITE[forfait] ?? 2
+  const actives        = biens.filter(b => b.statut === 'publie').length
+  const limitAtteinte  = limite !== Infinity && actives >= limite
+  const pct            = limite === Infinity ? 0 : Math.min(100, Math.round((actives / limite) * 100))
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Mes annonces</h1>
-          <Link
-            href="/bailleur/annonces/ajouter"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-            style={{ backgroundColor: '#E05C52' }}
-          >
-            <Plus size={16} /> Nouvelle annonce
-          </Link>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Mes annonces</h1>
+            {limite !== Infinity && (
+              <div className="flex items-center gap-3 mt-2">
+                <div className="w-40 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all"
+                    style={{ width: `${pct}%`, backgroundColor: limitAtteinte ? '#E05C52' : '#4338CA' }} />
+                </div>
+                <span className="text-xs text-gray-500">
+                  {actives} / {limite} annonce{limite > 1 ? 's' : ''} actives
+                  <span className="ml-1 font-medium" style={{ color: limitAtteinte ? '#E05C52' : '#6B7280' }}>
+                    ({FORFAIT_NOM[forfait]})
+                  </span>
+                </span>
+              </div>
+            )}
+          </div>
+          {limitAtteinte ? (
+            <Link
+              href="/auth/paiement-inscription"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: '#E05C52' }}
+            >
+              Passer à Pro pour plus d&apos;annonces
+            </Link>
+          ) : (
+            <Link
+              href="/bailleur/annonces/ajouter"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: '#E05C52' }}
+            >
+              <Plus size={16} /> Nouvelle annonce
+            </Link>
+          )}
         </div>
+
+        {limitAtteinte && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+            Limite atteinte : le forfait <strong>{FORFAIT_NOM[forfait]}</strong> autorise {limite} annonce{limite > 1 ? 's' : ''} active{limite > 1 ? 's' : ''} maximum.
+            Passez à <Link href="/auth/paiement-inscription" className="underline font-semibold">Pro ou Pro Max</Link> pour publier davantage.
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           {isLoading ? (
