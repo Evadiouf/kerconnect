@@ -198,7 +198,7 @@ function PaiementForm() {
               <div className="flex justify-between text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
                 <span className="font-medium">
                   Caution ({cautionMois} mois)
-                  <span className="text-xs font-normal text-amber-500 ml-1">— 1er paiement</span>
+                  <span className="text-xs font-normal text-amber-500 ml-1">(1er paiement)</span>
                 </span>
                 <span className="font-bold">+ {cautionMontant.toLocaleString('fr-FR')} FCFA</span>
               </div>

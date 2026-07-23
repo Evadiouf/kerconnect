@@ -12,7 +12,7 @@ const PLANS = [
   {
     id: 'starter',
     name: 'Starter',
-    tagline: '30 jours gratuits — puis souscription requise',
+    tagline: '30 jours gratuits puis souscription requise',
     monthlyPrice: 0,
     annualPrice: 0,
     annonces: '2 annonces actives',

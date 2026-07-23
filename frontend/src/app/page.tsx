@@ -249,7 +249,7 @@ export default function HomePage() {
             <span className="text-white">simplicité.</span>
           </h1>
           <p className="text-base md:text-lg text-gray-200 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Une nouvelle façon de trouver le logement idéal — appartements, chambres, villas.
+            Une nouvelle façon de trouver le logement idéal : appartements, chambres, villas.
             Des offres vérifiées, un parcours 100 % en ligne.
           </p>
 
@@ -346,7 +346,7 @@ export default function HomePage() {
               <span style={{ color: '#E05C52' }}>ressemble</span>
             </h2>
             <p className="text-gray-400 mt-2 text-sm">
-              Appartements, villas, chambres ou duplex — explorez et trouvez votre espace.
+              Appartements, villas, chambres ou duplex. Explorez et trouvez votre espace.
             </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

@@ -25,7 +25,7 @@ const PLANS = [
   {
     id: 'starter',
     name: 'Starter',
-    tagline: '30 jours d\'essai — puis souscription requise',
+    tagline: '',
     monthlyPrice: 0,
     annualPrice: 0,
     mode: 'starter',
@@ -45,7 +45,7 @@ const PLANS = [
   {
     id: 'pro',
     name: 'Pro',
-    tagline: 'Développez votre activité locative',
+    tagline: '',
     monthlyPrice: 5000,
     annualPrice: 49900,
     mode: 'wave',
@@ -66,7 +66,7 @@ const PLANS = [
   {
     id: 'agence',
     name: 'Pro Max',
-    tagline: 'Puissance maximale pour grands portfolios',
+    tagline: '',
     monthlyPrice: 10000,
     annualPrice: 99900,
     mode: 'wave',
@@ -633,7 +633,7 @@ export default function PaiementInscriptionPage() {
                   {plan.badge && <span className="pi-badge">{plan.badge}</span>}
 
                   <p className={`pi-plan-label ${v}`}>{plan.name}</p>
-                  <p className={`pi-tagline ${v}`}>{plan.tagline}</p>
+                  {plan.tagline && <p className={`pi-tagline ${v}`}>{plan.tagline}</p>}
 
                   {/* Prix */}
                   <div>
@@ -705,9 +705,11 @@ export default function PaiementInscriptionPage() {
                   color: selectedPlan.variant === 'light' ? 'var(--pi-text)' : '#fff' }}>
                   {selectedPlan.name}
                 </p>
-                <p style={{ fontSize: 13, color: selectedPlan.variant === 'light' ? 'var(--pi-muted)' : 'rgba(255,255,255,.6)' }}>
-                  {selectedPlan.tagline}
-                </p>
+                {selectedPlan.tagline && (
+                  <p style={{ fontSize: 13, color: selectedPlan.variant === 'light' ? 'var(--pi-muted)' : 'rgba(255,255,255,.6)' }}>
+                    {selectedPlan.tagline}
+                  </p>
+                )}
               </div>
               <div style={{ textAlign: 'right' }}>
                 <p style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums',

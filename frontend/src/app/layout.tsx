@@ -8,7 +8,7 @@ const geist = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'KerConnect — Plateforme immobilière',
-  description: 'Louez et achetez des biens immobiliers au Sénégal — 100% en ligne.',
+  description: 'Louez et achetez des biens immobiliers au Sénégal, 100% en ligne.',
   authors: [{ name: 'Naratechvision' }],
 }
 
