@@ -20,12 +20,16 @@ class ContratController extends Controller
 
         $demande = \App\Models\Demande::with('bien')->findOrFail($request->demande_id);
 
+        if (\App\Models\Contrat::where('demande_id', $demande->id)->exists()) {
+            return response()->json(['message' => 'Un contrat existe déjà pour cette demande.'], 422);
+        }
+
         $contrat = \App\Models\Contrat::create([
             'demande_id'   => $demande->id,
             'bien_id'      => $demande->bien_id,
             'bailleur_id'  => $request->user()->id,
             'locataire_id' => $demande->demandeur_id,
-            'numero'       => 'CTR-' . date('Y') . '-' . str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT),
+            'numero'       => 'CTR-' . date('Y') . '-' . strtoupper(\Illuminate\Support\Str::random(6)),
             'type'         => $request->type,
             'montant'      => $request->montant,
             'date_debut'   => $request->date_debut,

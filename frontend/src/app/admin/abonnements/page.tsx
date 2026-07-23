@@ -16,7 +16,7 @@ interface PendingUser {
   inscription_at: string
 }
 
-const FORFAIT_LABELS: Record<string, string> = { starter: 'Starter', pro: 'Pro', agence: 'Propriété' }
+const FORFAIT_LABELS: Record<string, string> = { starter: 'Starter', pro: 'Pro', agence: 'Pro Max' }
 const FORFAIT_COLORS: Record<string, string> = {
   starter: 'bg-gray-100 text-gray-700',
   pro:     'bg-red-50 text-red-700',
@@ -60,7 +60,7 @@ export default function AdminAbonnementsPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Abonnements en attente</h1>
             <p className="text-gray-500 mt-1">
-              Confirmez les demandes d&apos;abonnement Pro et Propriété reçues des bailleurs.
+              Confirmez les demandes d&apos;abonnement Pro et Pro Max reçues des bailleurs.
             </p>
           </div>
           <button

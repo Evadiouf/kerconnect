@@ -100,7 +100,7 @@ export default function ClientDashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Link href="/location" className="text-white rounded-2xl p-6 hover:opacity-90 transition-opacity block" style={{ backgroundColor: '#4338CA' }}>
             <h3 className="font-bold text-lg mb-1">Trouver un logement</h3>
-            <p className="text-indigo-200 text-sm">Explorer plus de 1 200 biens à louer</p>
+            <p className="text-indigo-200 text-sm">Parcourez toutes nos offres de location</p>
           </Link>
           <Link href="/vente" className="text-white rounded-2xl p-6 hover:opacity-90 transition-opacity block" style={{ backgroundColor: '#E05C52' }}>
             <h3 className="font-bold text-lg mb-1">Acheter un bien</h3>

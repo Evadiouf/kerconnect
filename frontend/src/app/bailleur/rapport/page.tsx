@@ -33,17 +33,13 @@ export default function BailleurRapportPage() {
   const [annee, setAnnee] = useState(now.getFullYear())
 
   const { data, isLoading } = useQuery({
-    queryKey: ['bailleur-paiements-rapport'],
-    queryFn:  () => api.get('/v1/bailleur/paiements').then(r => r.data),
+    queryKey: ['bailleur-paiements-rapport', mois + 1, annee],
+    queryFn:  () => api.get('/v1/bailleur/paiements', {
+      params: { month: mois + 1, year: annee },
+    }).then(r => r.data),
   })
 
-  const tous: Paiement[] = data?.data ?? []
-
-  const filtres = tous.filter(p => {
-    if (p.statut !== 'confirme') return false
-    const d = new Date(p.created_at)
-    return d.getMonth() === mois && d.getFullYear() === annee
-  })
+  const filtres: Paiement[] = data?.data ?? []
 
   const totalBrut       = filtres.reduce((s, p) => s + Number(p.montant), 0)
   const totalCommission = filtres.reduce((s, p) => s + Number(p.commission_montant ?? 0), 0)

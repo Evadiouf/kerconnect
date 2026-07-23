@@ -68,14 +68,7 @@ export default function BailleurPaiementsPage() {
   const uploadModele = async (contratId: number, file: File) => {
     const fd = new globalThis.FormData()
     fd.append('fichier', file)
-    const token = localStorage.getItem('token')
-    const base  = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api').replace(/\/$/, '')
-    const res = await fetch(`${base}/v1/contrats/${contratId}/upload-modele`, {
-      method: 'POST',
-      headers: { Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      body: fd,
-    })
-    if (!res.ok) throw new Error('Erreur upload')
+    await api.post(`/v1/contrats/${contratId}/upload-modele`, fd)
     qc.invalidateQueries({ queryKey: ['bailleur-contrats'] })
   }
 
@@ -85,20 +78,13 @@ export default function BailleurPaiementsPage() {
   const storageBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api').replace(/\/api\/?$/, '') + '/storage'
 
   const downloadRecu = async (paiementId: number) => {
-    const token = localStorage.getItem('token')
-    const base  = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api').replace(/\/$/, '')
     try {
-      const res = await fetch(`${base}/v1/paiements/${paiementId}/recu`, {
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/pdf' },
-      })
-      if (!res.ok) return
-      const blob = await res.blob()
-      const url  = URL.createObjectURL(blob)
-      const a    = document.createElement('a')
-      a.href     = url
-      a.download = `recu-${paiementId}.pdf`
-      a.click()
-      URL.revokeObjectURL(url)
+      const res = await api.get(`/v1/paiements/${paiementId}/recu`, { responseType: 'blob' })
+      const url = URL.createObjectURL(new Blob([res.data]))
+      const a   = document.createElement('a')
+      a.href = url; a.download = `recu-${paiementId}.pdf`
+      document.body.appendChild(a); a.click()
+      document.body.removeChild(a); URL.revokeObjectURL(url)
     } catch { /* silencieux */ }
   }
 
@@ -110,7 +96,7 @@ export default function BailleurPaiementsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900">Paiements reçus</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
 
         {/* ── Stats ── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

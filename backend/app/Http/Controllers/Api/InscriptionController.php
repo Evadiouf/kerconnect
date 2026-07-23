@@ -58,15 +58,16 @@ class InscriptionController extends Controller
                 'inscription_payee' => true,
                 'inscription_at'    => now(),
                 'forfait'           => 'starter',
+                'starter_expire_at' => now()->addDays(30),
             ]);
             return response()->json([
-                'message'           => 'Compte Starter activé. Bienvenue sur KerConnect !',
+                'message'           => 'Compte Starter activé. Vous disposez de 30 jours d\'essai.',
                 'inscription_payee' => true,
                 'en_attente'        => false,
             ]);
         }
 
-        // Pro / Propriété → demande soumise, attente de confirmation admin
+        // Pro / Pro Max → demande soumise, attente de confirmation admin
         $user->update([
             'inscription_at' => now(),
             'forfait'        => $forfait,
@@ -74,7 +75,7 @@ class InscriptionController extends Controller
         ]);
 
         // Notification à l'admin
-        $forfaitLabel = match($forfait) { 'pro' => 'Pro', 'agence' => 'Propriété', default => 'Starter' };
+        $forfaitLabel = match($forfait) { 'pro' => 'Pro', 'agence' => 'Pro Max', default => 'Starter' };
         try {
             $adminEmail = config('mail.admin_email', 'contact@naratechvision.com');
             Mail::raw(
@@ -115,7 +116,7 @@ class InscriptionController extends Controller
         }
 
         $expireAt     = in_array($user->forfait, ['pro', 'agence']) ? now()->addMonth() : null;
-        $forfaitLabel = match($user->forfait) { 'pro' => 'Pro', 'agence' => 'Propriété', default => 'Starter' };
+        $forfaitLabel = match($user->forfait) { 'pro' => 'Pro', 'agence' => 'Pro Max', default => 'Starter' };
 
         $user->update([
             'inscription_payee' => true,
@@ -127,7 +128,7 @@ class InscriptionController extends Controller
         try {
             Mail::raw(
                 "Bonjour {$user->name},\n\nVotre compte KerConnect est maintenant actif avec le forfait {$forfaitLabel} !\n\nAccédez à votre espace bailleur :\n{$loginUrl}\n\nCommencez à publier vos annonces dès maintenant.\n\nL'équipe KerConnect",
-                fn($msg) => $msg->to($user->email)->subject("✅ Votre compte KerConnect est activé — Forfait {$forfaitLabel}")
+                fn($msg) => $msg->to($user->email)->subject("Votre compte KerConnect est activé - Forfait {$forfaitLabel}")
             );
         } catch (\Exception $e) {
             Log::warning("Email confirmation inscription non envoyé pour {$user->email}: " . $e->getMessage());

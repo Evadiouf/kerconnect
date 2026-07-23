@@ -157,14 +157,18 @@ class PaiementController extends Controller
     // ── Webhook PayDunya (confirmation automatique)
     public function webhook(Request $request): JsonResponse
     {
-        // Vérifier la signature HMAC si le secret est configuré
         $secret = config('services.paydunya.secret');
-        if ($secret) {
-            $signature = $request->header('X-PayDunya-Signature') ?? '';
-            $expected  = hash_hmac('sha256', $request->getContent(), $secret);
-            if (!hash_equals($expected, $signature)) {
-                return response()->json(['error' => 'Signature invalide.'], 401);
-            }
+
+        // Bloquer si le secret n'est pas configuré — ne jamais accepter des callbacks non vérifiés
+        if (!$secret) {
+            \Log::error('Webhook PayDunya rejeté : PAYDUNYA_SECRET non configuré.');
+            return response()->json(['error' => 'Configuration incomplète.'], 503);
+        }
+
+        $signature = $request->header('X-PayDunya-Signature') ?? '';
+        $expected  = hash_hmac('sha256', $request->getContent(), $secret);
+        if (!hash_equals($expected, $signature)) {
+            return response()->json(['error' => 'Signature invalide.'], 401);
         }
 
         $reference = $request->input('custom_data.reference') ?? $request->input('reference');
@@ -224,14 +228,20 @@ class PaiementController extends Controller
         return $pdf->download("recu-{$paiement->reference}.pdf");
     }
 
-    // ── Tous les paiements reçus par le bailleur
+    // ── Tous les paiements reçus par le bailleur (avec filtre mois/année pour le rapport)
     public function paiementsBailleur(Request $request): JsonResponse
     {
-        $paiements = Paiement::with(['contrat.bien:id,titre', 'payeur:id,name,email'])
-            ->whereHas('contrat', fn($q) => $q->where('bailleur_id', $request->user()->id))
-            ->latest()
-            ->paginate(20);
-        return response()->json($paiements);
+        $query = Paiement::with(['contrat.bien:id,titre', 'contrat.locataire:id,name', 'payeur:id,name,email'])
+            ->whereHas('contrat', fn($q) => $q->where('bailleur_id', $request->user()->id));
+
+        if ($request->filled('month') && $request->filled('year')) {
+            $query->where('statut', 'confirme')
+                  ->whereMonth('created_at', (int) $request->month)
+                  ->whereYear('created_at', (int) $request->year);
+            return response()->json(['data' => $query->latest()->get()]);
+        }
+
+        return response()->json($query->latest()->paginate(20));
     }
 
     // ── Paiements en attente de confirmation (bailleur)

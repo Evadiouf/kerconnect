@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import api from '@/lib/api'
 
 const schema = z.object({
   titre:       z.string().min(5, 'Titre requis (5 caractères min)'),
@@ -66,19 +67,7 @@ export default function AjouterAnnoncePage() {
       if (video)       fd.append('video', video)
       if (contratFile) fd.append('contrat_modele', contratFile)
 
-      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api').replace(/\/$/, '')
-      const xhr = await new Promise<{ ok: boolean; data: Record<string, unknown> }>((resolve) => {
-        const x = new XMLHttpRequest()
-        x.open('POST', `${baseUrl}/v1/bailleur/biens`)
-        x.setRequestHeader('Accept', 'application/json')
-        if (token) x.setRequestHeader('Authorization', `Bearer ${token}`)
-        // NE PAS setRequestHeader Content-Type → navigateur pose multipart+boundary
-        x.onload = () => resolve({ ok: x.status < 300, data: JSON.parse(x.responseText || '{}') })
-        x.onerror = () => resolve({ ok: false, data: { message: 'Erreur réseau' } })
-        x.send(fd)
-      })
-      if (!xhr.ok) throw new Error((xhr.data as { message?: string }).message || 'Erreur upload')
+      await api.post('/v1/bailleur/biens', fd)
       router.push('/bailleur/annonces?success=1')
     } catch (err: unknown) {
       const e = err as Error

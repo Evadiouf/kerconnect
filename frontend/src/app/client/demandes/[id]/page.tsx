@@ -29,14 +29,7 @@ export default function ClientDemandeDetailPage() {
     try {
       const fd = new globalThis.FormData()
       fd.append('fichier', file)
-      const token = localStorage.getItem('token')
-      const base  = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api').replace(/\/$/, '')
-      const res = await fetch(`${base}/v1/contrats/${contratId}/upload-signe`, {
-        method: 'POST',
-        headers: { Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: fd,
-      })
-      if (!res.ok) throw new Error('Erreur upload')
+      await api.post(`/v1/contrats/${contratId}/upload-signe`, fd)
       window.location.reload()
     } catch {
       setSignError('Erreur lors de l\'envoi. Réessayez.')

@@ -28,6 +28,7 @@ class User extends Authenticatable
         'verifie',
         'forfait',
         'forfait_expire_at',
+        'starter_expire_at',
     ];
 
     protected $hidden = [
@@ -44,7 +45,8 @@ class User extends Authenticatable
             'inscription_payee' => 'boolean',
             'inscription_at'    => 'datetime',
             'verifie'           => 'boolean',
-            'forfait_expire_at' => 'datetime',
+            'forfait_expire_at'  => 'datetime',
+            'starter_expire_at'  => 'datetime',
         ];
     }
 
