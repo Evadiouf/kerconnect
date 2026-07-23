@@ -19,37 +19,35 @@ const PAYMENT_MODES = [
   { id: 'carte',        label: 'Carte',        icon: '💳', desc: 'Bancaire' },
 ]
 
-const FORFAIT_LABELS: Record<string, string> = { starter: 'Starter', pro: 'Pro', agence: 'Propriété' }
+const FORFAIT_LABELS: Record<string, string> = { starter: 'Starter', pro: 'Pro', agence: 'Pro Max' }
 
 const PLANS = [
   {
     id: 'starter',
     name: 'Starter',
-    tagline: 'Testez la plateforme',
+    tagline: '30 jours d\'essai — puis souscription requise',
     monthlyPrice: 0,
     annualPrice: 0,
-    commission: 5,
     mode: 'starter',
-    cta: 'Commencer gratuitement',
+    cta: 'Commencer l\'essai gratuit',
     variant: 'light' as const,
     features: [
+      { text: '30 jours d\'essai offerts', ok: true },
       { text: '2 annonces actives maximum', ok: true },
       { text: 'Réception des demandes', ok: true },
       { text: 'Tableau de bord essentiel', ok: true },
       { text: 'Gestion d\'un contrat numérique', ok: true },
-      { text: 'Rappels de paiement auto.', ok: true },
+      { text: 'Accès suspendu après 30 jours', ok: false },
       { text: 'Mise en avant dans les résultats', ok: false },
-      { text: 'Statistiques de vues', ok: false },
       { text: 'Support prioritaire (24h)', ok: false },
     ],
   },
   {
     id: 'pro',
     name: 'Pro',
-    tagline: 'Pour les bailleurs actifs',
-    monthlyPrice: 2000,
-    annualPrice: 19900,
-    commission: 4,
+    tagline: 'Développez votre activité locative',
+    monthlyPrice: 5000,
+    annualPrice: 49900,
     mode: 'wave',
     cta: 'Choisir Pro',
     variant: 'accent' as const,
@@ -67,13 +65,12 @@ const PLANS = [
   },
   {
     id: 'agence',
-    name: 'Propriété',
-    tagline: 'Pour les propriétaires & agences',
-    monthlyPrice: 3000,
-    annualPrice: 29900,
-    commission: 3,
+    name: 'Pro Max',
+    tagline: 'Puissance maximale pour grands portfolios',
+    monthlyPrice: 10000,
+    annualPrice: 99900,
     mode: 'wave',
-    cta: 'Choisir Propriété',
+    cta: 'Choisir Pro Max',
     variant: 'dark' as const,
     features: [
       { text: 'Annonces illimitées', ok: true },
@@ -653,15 +650,7 @@ export default function PaiementInscriptionPage() {
                     )}
                   </div>
 
-                  {/* Commission chip */}
-                  <span className={`pi-chip ${v}`}>
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                      <path d="M2 10L10 2M3.5 3h-1.5v1.5M8.5 9H10V7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    Commission {plan.commission}%
-                  </span>
-
-                  <div className={`pi-line ${v}`} />
+                  <div className={`pi-line ${v}`} style={{ marginTop: 28 }} />
 
                   {/* Features */}
                   <ul className="pi-feats">
@@ -684,7 +673,7 @@ export default function PaiementInscriptionPage() {
           </div>
 
           <p className="pi-footnote">
-            Forfait modifiable à tout moment · Starter toujours gratuit<br />
+            30 jours d&apos;essai gratuits · Passe à Pro ou Pro Max ensuite<br />
             Des questions ? <a href="/contact">Contactez notre équipe</a>.
           </p>
         </>)}
@@ -717,7 +706,7 @@ export default function PaiementInscriptionPage() {
                   {selectedPlan.name}
                 </p>
                 <p style={{ fontSize: 13, color: selectedPlan.variant === 'light' ? 'var(--pi-muted)' : 'rgba(255,255,255,.6)' }}>
-                  Commission {selectedPlan.commission}% · {selectedPlan.tagline}
+                  {selectedPlan.tagline}
                 </p>
               </div>
               <div style={{ textAlign: 'right' }}>
