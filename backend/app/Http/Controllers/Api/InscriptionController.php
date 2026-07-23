@@ -80,7 +80,7 @@ class InscriptionController extends Controller
             $adminEmail = config('mail.admin_email', 'contact@naratechvision.com');
             Mail::raw(
                 "Nouvelle demande d'abonnement\n\nBailleur : {$user->name} ({$user->email})\nForfait : {$forfaitLabel}\nTéléphone : {$user->phone}\nDate : " . now()->format('d/m/Y H:i') . "\n\nConnectez-vous à l'espace admin pour confirmer.",
-                fn($msg) => $msg->to($adminEmail)->subject("🔔 Nouvelle demande d'abonnement {$forfaitLabel} — {$user->name}")
+                fn($msg) => $msg->to($adminEmail)->subject("Nouvelle demande abonnement {$forfaitLabel} de {$user->name}")
             );
         } catch (\Exception $e) {
             Log::warning("Notification admin inscription non envoyée : " . $e->getMessage());

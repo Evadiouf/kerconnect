@@ -346,7 +346,7 @@ export default function ClientDemandeDetailPage() {
                       <p className="text-xs font-semibold text-green-800 mb-2">✅ Étape 4 — Payer</p>
                       <button
                         onClick={() => router.push(
-                          `/paiement?contrat_id=${contrat.id}&montant=${contrat.montant}&libelle=${encodeURIComponent('Loyer — ' + bien?.titre)}`
+                          `/paiement?contrat_id=${contrat.id}&montant=${contrat.montant}&libelle=${encodeURIComponent('Loyer : ' + bien?.titre)}`
                         )}
                         className="w-full py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90"
                         style={{ backgroundColor: '#E05C52' }}

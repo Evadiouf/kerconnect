@@ -85,9 +85,8 @@ function PaiementForm() {
     ? cautionMois * montantBase
     : 0
 
-  // Commission sur (loyer + caution) pour 1er paiement, sur loyer seul sinon
-  const baseCommission    = montantBase + cautionMontant
-  const commissionMontant = Math.round(baseCommission * commissionTaux / 100)
+  // Commission sur le loyer uniquement (la caution est un dépôt remboursable)
+  const commissionMontant = Math.round(montantBase * commissionTaux / 100)
   const montantTotal      = montantBase + cautionMontant + commissionMontant
 
   // Champs espèce/chèque

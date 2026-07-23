@@ -93,7 +93,7 @@ class ContratController extends Controller
                     "Bonjour {$contrat->locataire->name},\n\nLe bailleur vous a envoyé le contrat pour le bien \"{$contrat->bien?->titre}\".\n\nConnectez-vous à la plateforme KerConnect pour :\n1. Télécharger le contrat\n2. Le signer manuscritement\n3. Le renvoyer en PDF via la plateforme\n\nRéférence contrat : {$contrat->numero}\nMontant : " . number_format($contrat->montant, 0, ',', ' ') . " FCFA\n\nCordialement,\nL'équipe KerConnect",
                     function ($m) use ($contrat) {
                         $m->to($contrat->locataire->email, $contrat->locataire->name)
-                          ->subject("KerConnect — Votre contrat est prêt à signer");
+                          ->subject("Votre contrat est prêt à signer sur KerConnect");
                     }
                 );
             } catch (\Exception $e) {}
@@ -128,7 +128,7 @@ class ContratController extends Controller
                     "Bonjour {$contrat->bailleur->name},\n\n{$contrat->locataire->name} a signé et renvoyé le contrat pour \"{$contrat->bien?->titre}\".\n\nConnectez-vous à KerConnect pour :\n1. Consulter le document signé\n2. Valider la signature pour autoriser le paiement\n\nRéférence : {$contrat->numero}\n\nCordialement,\nL'équipe KerConnect",
                     function ($m) use ($contrat) {
                         $m->to($contrat->bailleur->email, $contrat->bailleur->name)
-                          ->subject("KerConnect — {$contrat->locataire->name} a signé votre contrat");
+                          ->subject("{$contrat->locataire->name} a signé votre contrat sur KerConnect");
                     }
                 );
             } catch (\Exception $e) {}

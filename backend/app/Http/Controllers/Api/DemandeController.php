@@ -40,7 +40,7 @@ class DemandeController extends Controller
                 \Illuminate\Support\Facades\Mail::raw(
                     "Nouvelle demande de {$demande->demandeur->name} pour votre bien \"{$demande->bien->titre}\".\n\nConnectez-vous sur KerConnect pour consulter et répondre à cette demande.",
                     fn($msg) => $msg->to($demande->bien->bailleur->email)
-                        ->subject('Nouvelle demande sur votre bien — KerConnect')
+                        ->subject('Nouvelle demande sur votre bien via KerConnect')
                 );
             }
         } catch (\Exception $e) {
@@ -111,7 +111,7 @@ class DemandeController extends Controller
                 ->latest()->limit(3)->get()
                 ->map(fn($p) => [
                     'id'      => $p->id,
-                    'texte'   => "💰 Paiement en attente — " . number_format($p->montant, 0, ',', ' ') . " FCFA",
+                    'texte'   => "Paiement en attente : " . number_format($p->montant, 0, ',', ' ') . " FCFA",
                     'statut'  => 'paiement',
                     'date'    => $p->created_at,
                     'lien'    => "/bailleur/paiements",
@@ -125,7 +125,7 @@ class DemandeController extends Controller
                 ->latest()->limit(3)->get()
                 ->map(fn($c) => [
                     'id'      => $c->id,
-                    'texte'   => "✍️ Contrat signé par le client — validez pour autoriser le paiement « {$c->bien?->titre} »",
+                    'texte'   => "Contrat signé par le client, validez pour autoriser le paiement : {$c->bien?->titre}",
                     'statut'  => 'signature',
                     'date'    => $c->signe_client_at ?? $c->updated_at,
                     'lien'    => "/bailleur/demandes/{$c->demande_id}",
@@ -138,7 +138,7 @@ class DemandeController extends Controller
                 ->latest()->limit(4)->get()
                 ->map(fn($d) => [
                     'id'      => $d->id,
-                    'texte'   => "Demande pour « {$d->bien?->titre} » — {$d->statut}",
+                    'texte'   => "Demande pour {$d->bien?->titre} : {$d->statut}",
                     'statut'  => $d->statut,
                     'date'    => $d->created_at,
                     'lien'    => "/client/demandes/{$d->id}",
@@ -187,7 +187,7 @@ class DemandeController extends Controller
                 "Message de {$bailleur->name} (bailleur) concernant votre demande pour \"{$demande->bien->titre}\" :\n\n{$request->message}\n\n---\nRépondre à : {$bailleur->email}",
                 function ($m) use ($demandeur, $bailleur, $demande) {
                     $m->to($demandeur->email, $demandeur->name)
-                      ->subject("KerConnect — Réponse de {$bailleur->name} pour \"{$demande->bien->titre}\"")
+                      ->subject("Réponse de {$bailleur->name} pour votre demande sur KerConnect")
                       ->replyTo($bailleur->email, $bailleur->name);
                 }
             );
@@ -213,7 +213,7 @@ class DemandeController extends Controller
                     \Illuminate\Support\Facades\Mail::raw(
                         "Bonne nouvelle ! Votre demande pour le bien \"{$demande->bien->titre}\" a été acceptée par le bailleur.\n\nConnectez-vous sur KerConnect pour consulter votre contrat et poursuivre la démarche.",
                         fn($msg) => $msg->to($demande->demandeur->email)
-                            ->subject('Demande acceptée — KerConnect')
+                            ->subject('Demande acceptée sur KerConnect')
                     );
                 }
             } catch (\Exception $e) {
@@ -266,7 +266,7 @@ class DemandeController extends Controller
                 "Message de {$demandeur->name} concernant votre bien \"{$demande->bien->titre}\" :\n\n{$request->message}\n\n---\nRépondre à : {$demandeur->email}",
                 function ($m) use ($bailleur, $demandeur, $demande) {
                     $m->to($bailleur->email, $bailleur->name)
-                      ->subject("KerConnect — Message de {$demandeur->name} pour \"{$demande->bien->titre}\"")
+                      ->subject("Message de {$demandeur->name} via KerConnect")
                       ->replyTo($demandeur->email, $demandeur->name);
                 }
             );

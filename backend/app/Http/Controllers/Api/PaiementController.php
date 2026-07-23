@@ -67,8 +67,8 @@ class PaiementController extends Controller
         $tauxCommission   = $commissionActive ? $contrat->bailleur->tauxCommission() : 0.0;
         $montantBase      = (float) $request->montant_base;
         $cautionMontant   = (float) ($request->caution_montant ?? 0);
-        // Commission calculée sur (loyer + caution) pour le 1er paiement
-        $commission       = round(($montantBase + $cautionMontant) * $tauxCommission / 100, 2);
+        // Commission sur le loyer uniquement (la caution est un dépôt remboursable)
+        $commission       = round($montantBase * $tauxCommission / 100, 2);
         $montantTotal     = $montantBase + $cautionMontant + $commission;
 
         $paiement = Paiement::create([
@@ -139,7 +139,7 @@ class PaiementController extends Controller
             if ($client?->email) {
                 \Illuminate\Support\Facades\Mail::raw(
                     "Votre paiement de " . number_format($paiement->montant, 0, ',', ' ') . " FCFA a été confirmé (réf. {$paiement->reference}).\n\nLe bailleur a bien reçu votre règlement.\n\nMerci d'utiliser KerConnect.",
-                    fn($msg) => $msg->to($client->email)->subject('Paiement confirmé — KerConnect')
+                    fn($msg) => $msg->to($client->email)->subject('Paiement confirmé sur KerConnect')
                 );
             }
         } catch (\Exception $e) {

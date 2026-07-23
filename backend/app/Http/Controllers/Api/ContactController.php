@@ -23,7 +23,7 @@ class ContactController extends Controller
                 "Nouveau message de conseil\n\nNom : {$request->nom}\nEmail : {$request->email}\nSujet : {$request->sujet}\n\n{$request->message}",
                 function ($m) use ($request) {
                     $m->to(config('mail.from.address'))
-                      ->subject('KerConnect — ' . ($request->sujet ?? 'Demande de conseil'))
+                      ->subject('KerConnect : ' . ($request->sujet ?? 'Demande de conseil'))
                       ->replyTo($request->email, $request->nom);
                 }
             );

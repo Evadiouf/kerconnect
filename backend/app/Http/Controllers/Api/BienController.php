@@ -189,7 +189,7 @@ class BienController extends Controller
                     "Consultez-le sur KerConnect : " . config('app.url') . "/biens/{$bien->id}\n\n" .
                     "Cordialement,\nL'équipe KerConnect",
                     fn($m) => $m->to($alerte->user->email, $alerte->user->name)
-                                ->subject("KerConnect — Nouveau bien : {$bien->titre}")
+                                ->subject("Nouveau bien sur KerConnect : {$bien->titre}")
                 );
             } catch (\Exception $e) {
                 \Log::warning("Alerte email non envoyée : " . $e->getMessage());
