@@ -61,6 +61,10 @@ class AuthController extends Controller
                 );
             } catch (\Exception $e) {
                 \Log::error("Email confirmation admin non envoyé : " . $e->getMessage());
+                // En dev, loguer le lien pour pouvoir tester sans SMTP
+                if (config('app.debug')) {
+                    \Log::info("[DEV] Lien confirmation admin : {$confirmUrl}");
+                }
             }
 
             return response()->json([
@@ -225,7 +229,7 @@ class AuthController extends Controller
         if (!$user) {
             return response()->json([
                 'message' => 'Lien invalide ou expiré. Reconnectez-vous.',
-            ], 401);
+            ], 422);
         }
 
         // Invalider le token après usage (usage unique)
