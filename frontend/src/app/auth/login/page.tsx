@@ -31,8 +31,9 @@ function LoginForm() {
   const router   = useRouter()
   const params   = useSearchParams()
   const setAuth  = useAuthStore((s) => s.setAuth)
-  const [error, setError]   = useState('')
-  const [showPwd, setShowPwd] = useState(false)
+  const [error, setError]         = useState('')
+  const [showPwd, setShowPwd]     = useState(false)
+  const [adminPending, setAdminPending] = useState(false)
 
   const verified = params.get('verified') === '1'
   const expired  = params.get('expired')  === '1'
@@ -46,6 +47,13 @@ function LoginForm() {
     setError('')
     try {
       const res = await api.post('/v1/auth/login', data)
+
+      // Login admin : confirmation par email requise
+      if (res.data.pending_admin_confirmation) {
+        setAdminPending(true)
+        return
+      }
+
       setAuth(res.data.user, res.data.token)
       const role = res.data.role
       const user = res.data.user
@@ -63,6 +71,35 @@ function LoginForm() {
       }
       setError(e.response?.data?.message || 'Identifiants incorrects.')
     }
+  }
+
+  if (adminPending) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-6">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 max-w-md w-full text-center">
+          <div className="text-5xl mb-5">📧</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-3">Vérifiez votre email</h2>
+          <p className="text-gray-500 text-sm mb-4 leading-relaxed">
+            Un lien de confirmation a été envoyé à<br />
+            <strong className="text-gray-900">contact@naratechvision.com</strong>
+          </p>
+          <p className="text-gray-400 text-xs mb-6">
+            Cliquez sur le lien dans l&apos;email pour accéder au tableau de bord admin.
+            Le lien expire dans <strong>15 minutes</strong>.
+          </p>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
+            Si vous n&apos;avez pas reçu l&apos;email, vérifiez vos spams ou réessayez de vous connecter.
+          </div>
+          <button
+            onClick={() => setAdminPending(false)}
+            className="mt-6 text-sm font-medium hover:underline"
+            style={{ color: '#4338CA' }}
+          >
+            Retour à la connexion
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

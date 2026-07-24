@@ -25,6 +25,9 @@ Route::prefix('v1/auth')->group(function () {
     // Google OAuth
     Route::get('/google/redirect', [AuthController::class, 'googleRedirect']);
     Route::get('/google/callback', [AuthController::class, 'googleCallback']);
+
+    // Confirmation login admin (lien reçu par email)
+    Route::get('/admin/confirm/{token}', [AuthController::class, 'confirmAdminLogin']);
 });
 
 // ── Routes publiques Biens (catalogue)

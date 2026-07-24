@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -40,6 +41,33 @@ class AuthController extends Controller
         }
 
         RateLimiter::clear($key);
+
+        // Connexion admin : confirmation obligatoire par email
+        if ($user->role === 'admin') {
+            $loginToken = Str::random(64);
+            $user->update([
+                'admin_login_token'            => hash('sha256', $loginToken),
+                'admin_login_token_expires_at' => now()->addMinutes(15),
+            ]);
+
+            $frontendUrl  = config('app.frontend_url', 'http://localhost:3000');
+            $confirmUrl   = "{$frontendUrl}/auth/admin/confirm/{$loginToken}";
+            $adminEmail   = config('mail.admin_email', 'contact@naratechvision.com');
+
+            try {
+                Mail::raw(
+                    "Bonjour,\n\nUne tentative de connexion a été détectée sur le compte administrateur KerConnect.\n\nCliquez sur le lien ci-dessous pour confirmer et accéder au tableau de bord :\n\n{$confirmUrl}\n\nCe lien expire dans 15 minutes.\n\nSi vous n'êtes pas à l'origine de cette connexion, ignorez cet email — votre compte reste protégé.\n\nL'équipe KerConnect",
+                    fn($msg) => $msg->to($adminEmail)->subject('Confirmation de connexion administrateur KerConnect')
+                );
+            } catch (\Exception $e) {
+                \Log::error("Email confirmation admin non envoyé : " . $e->getMessage());
+            }
+
+            return response()->json([
+                'pending_admin_confirmation' => true,
+                'message'                   => 'Un lien de confirmation a été envoyé à l\'email administrateur. Vérifiez contact@naratechvision.com.',
+            ]);
+        }
 
         $token = $user->createToken('auth_token', ['*'], now()->addDays(7))->plainTextToken;
 
@@ -182,6 +210,37 @@ class AuthController extends Controller
         Otp::where('email', $request->email)->where('type', 'reset_password')->delete();
 
         return response()->json(['message' => 'Mot de passe réinitialisé avec succès.']);
+    }
+
+    // ── Confirmation login admin via lien email
+    public function confirmAdminLogin(Request $request, string $token): JsonResponse
+    {
+        $hashed = hash('sha256', $token);
+
+        $user = User::where('role', 'admin')
+            ->where('admin_login_token', $hashed)
+            ->where('admin_login_token_expires_at', '>', now())
+            ->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Lien invalide ou expiré. Reconnectez-vous.',
+            ], 401);
+        }
+
+        // Invalider le token après usage (usage unique)
+        $user->update([
+            'admin_login_token'            => null,
+            'admin_login_token_expires_at' => null,
+        ]);
+
+        $jwtToken = $user->createToken('admin_auth', ['*'], now()->addDays(7))->plainTextToken;
+
+        return response()->json([
+            'user'  => $user,
+            'token' => $jwtToken,
+            'role'  => $user->role,
+        ]);
     }
 
     // ── Logout
