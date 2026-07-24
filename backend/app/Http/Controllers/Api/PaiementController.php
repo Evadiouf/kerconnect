@@ -67,9 +67,13 @@ class PaiementController extends Controller
         $tauxCommission   = $commissionActive ? $contrat->bailleur->tauxCommission() : 0.0;
         $montantBase      = (float) $request->montant_base;
         $cautionMontant   = (float) ($request->caution_montant ?? 0);
-        // Commission sur le loyer uniquement (la caution est un dépôt remboursable)
-        $commission       = round($montantBase * $tauxCommission / 100, 2);
-        $montantTotal     = $montantBase + $cautionMontant + $commission;
+        // Commission sur le loyer de base uniquement
+        $commission   = round($montantBase * $tauxCommission / 100, 2);
+        // 1er paiement : cautionMontant = caution_mois × loyer (loyer du 1er mois déjà inclus)
+        // Mois suivants : cautionMontant = 0, on ajoute montantBase seul
+        $montantTotal = $cautionMontant > 0
+            ? $cautionMontant + $commission
+            : $montantBase + $commission;
 
         $paiement = Paiement::create([
             'contrat_id'         => $contrat->id,
@@ -80,7 +84,7 @@ class PaiementController extends Controller
             'caution_montant'    => $cautionMontant ?: null,
             'commission_taux'    => $tauxCommission,
             'commission_montant' => $commission,
-            'montant_net'        => $montantBase,
+            'montant_net'        => $cautionMontant > 0 ? $cautionMontant : $montantBase,
             'mode'               => $request->mode,
             'libelle'            => $request->libelle ?? 'Paiement KerConnect',
             'periode'            => $request->periode,

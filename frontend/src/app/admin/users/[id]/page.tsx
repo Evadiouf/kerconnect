@@ -94,11 +94,11 @@ export default function UserDetailPage() {
 
           <div className="grid grid-cols-2 gap-4">
             {[
-              { label: 'Téléphone',           value: user.phone || '—' },
+              { label: 'Téléphone',           value: user.phone || '-' },
               { label: 'Inscrit le',           value: new Date(user.created_at).toLocaleDateString('fr-FR') },
               { label: 'Email vérifié',        value: user.email_verified_at ? 'Oui' : 'Non' },
               { label: 'Inscription payée',    value: user.inscription_payee ? 'Oui ✅' : 'Non ❌' },
-              { label: 'Note moyenne',         value: (user.note_moyenne ?? 0) > 0 ? `${user.note_moyenne} / 5 (${user.nb_avis} avis)` : '—' },
+              { label: 'Note moyenne',         value: (user.note_moyenne ?? 0) > 0 ? `${user.note_moyenne} / 5 (${user.nb_avis} avis)` : '-' },
               { label: 'Annonces',             value: user.biens_count ?? 0 },
               { label: 'Demandes',             value: user.demandes_count ?? 0 },
             ].map(({ label, value }) => (

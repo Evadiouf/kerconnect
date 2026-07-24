@@ -83,7 +83,7 @@ class BienController extends Controller
         $forfaitNom  = match($forfait) { 'pro' => 'Pro', 'agence' => 'Pro Max', default => 'Starter' };
 
         if ($limite !== PHP_INT_MAX) {
-            $actives = Bien::where('user_id', $user->id)->where('statut', 'publie')->count();
+            $actives = Bien::where('user_id', $user->id)->whereIn('statut', ['publie', 'loue'])->count();
             if ($actives >= $limite) {
                 return response()->json([
                     'message' => "Limite atteinte : le forfait {$forfaitNom} autorise {$limite} annonce(s) active(s) maximum. Passez à un forfait supérieur pour en publier davantage.",

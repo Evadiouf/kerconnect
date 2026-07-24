@@ -85,7 +85,7 @@
     <!-- Pied de page -->
     <div style="background:#F9FAFB;border-top:1px solid #E5E7EB;padding:20px 40px;text-align:center;">
       <p style="margin:0;font-size:12px;color:#9CA3AF;">
-        © {{ date('Y') }} KerConnect — Naratechvision · Dakar, Sénégal
+        © {{ date('Y') }} KerConnect | Naratechvision · Dakar, Sénégal · +221 71 030 70 54
       </p>
     </div>
 

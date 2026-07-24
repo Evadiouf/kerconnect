@@ -95,7 +95,7 @@ function HistoriqueContent() {
                       <td className="px-4 py-4 text-sm text-gray-600">{MODE_LABELS[p.mode] || p.mode}</td>
                       <td className="px-4 py-4 text-sm text-gray-500">{p.libelle}</td>
                       <td className="px-4 py-4 text-sm text-gray-500">
-                        {p.paye_at ? new Date(p.paye_at).toLocaleDateString('fr-FR') : '—'}
+                        {p.paye_at ? new Date(p.paye_at).toLocaleDateString('fr-FR') : '-'}
                       </td>
                       <td className="px-4 py-4">
                         <span className={`flex items-center gap-1.5 text-xs font-medium ${cfg.color}`}>

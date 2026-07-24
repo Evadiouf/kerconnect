@@ -110,7 +110,7 @@ function FinanceChart({ data }: { data: { mois: string; total: number }[] }) {
           />
           <span className="text-xs text-gray-400">{mois}</span>
           <span className="text-xs text-gray-500 font-medium">
-            {total > 0 ? (total >= 1000 ? `${(total / 1000).toFixed(0)}k` : String(total)) : '—'}
+            {total > 0 ? (total >= 1000 ? `${(total / 1000).toFixed(0)}k` : String(total)) : '-'}
           </span>
         </div>
       ))}

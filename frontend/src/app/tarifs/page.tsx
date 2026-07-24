@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
+import { useAuthStore } from '@/store/auth.store'
 
 /* ─────────────────────────────────────────────
    Données des forfaits
@@ -102,6 +103,8 @@ function IconCross({ light }: { light?: boolean }) {
 ───────────────────────────────────────────── */
 export default function TarifsPage() {
   const [annuel, setAnnuel] = useState(false)
+  const { user } = useAuthStore()
+  const isLoggedIn = !!user
 
   function prix(plan: typeof PLANS[0]) {
     if (plan.monthlyPrice === 0) return null
@@ -599,8 +602,11 @@ export default function TarifsPage() {
                 </ul>
 
                 {/* CTA */}
-                <Link href={plan.href} className={`plan-cta ${v}`}>
-                  {plan.cta}
+                <Link
+                  href={isLoggedIn && plan.id !== 'starter' ? '/auth/paiement-inscription' : plan.href}
+                  className={`plan-cta ${v}`}
+                >
+                  {isLoggedIn && plan.id !== 'starter' ? `Passer à ${plan.name}` : plan.cta}
                 </Link>
               </div>
             )

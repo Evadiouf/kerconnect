@@ -18,7 +18,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 const CONTACTS = [
-  { icon: Phone,  label: 'Téléphone', value: '33 000 00 00',               href: 'tel:+221330000000'              },
+  { icon: Phone,  label: 'Téléphone', value: '+221 71 030 70 54',          href: 'tel:+221710307054'              },
   { icon: Mail,   label: 'Email',     value: 'contact@naratechvision.com',  href: 'mailto:contact@naratechvision.com' },
   { icon: MapPin, label: 'Adresse',   value: 'Dakar, Sénégal',             href: '#'                              },
   { icon: Clock,  label: 'Horaires',  value: 'Lun–Ven 8h–18h · Sam 9h–13h', href: '#'                            },
@@ -175,7 +175,7 @@ export default function ContactPage() {
               <Mail size={16} /> contact@naratechvision.com
             </a>
             <a
-              href="tel:+221330000000"
+              href="tel:+221710307054"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition-opacity"
               style={{ backgroundColor: '#E05C52' }}
             >

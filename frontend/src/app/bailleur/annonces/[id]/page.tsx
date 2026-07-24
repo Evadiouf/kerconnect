@@ -204,7 +204,7 @@ export default function BailleurAnnonceDetailPage() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Vues</span>
-                  <span className="font-bold text-gray-900">—</span>
+                  <span className="font-bold text-gray-900">-</span>
                 </div>
               </div>
               <Link href="/bailleur/demandes">

@@ -222,24 +222,24 @@ export default function BailleurDemandeDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Email</span>
-                  <span className="font-medium text-gray-900">{demandeur.email ?? '—'}</span>
+                  <span className="font-medium text-gray-900">{demandeur.email ?? '-'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Téléphone</span>
-                  <span className="font-medium text-gray-900">{demandeur.phone ?? '—'}</span>
+                  <span className="font-medium text-gray-900">{demandeur.phone ?? '-'}</span>
                 </div>
               </div>
 
               {/* Adresse */}
               <div className="bg-gray-50 rounded-xl p-3 mb-3">
                 <p className="text-xs text-gray-400 mb-1">Adresse actuelle</p>
-                <p className="text-sm text-gray-700 font-medium">{demandeur.ville ?? '—'}</p>
+                <p className="text-sm text-gray-700 font-medium">{demandeur.ville ?? '-'}</p>
               </div>
 
               {/* Description demandeur */}
               <div>
                 <p className="text-xs text-gray-400 mb-1.5">DESCRIPTION</p>
-                <p className="text-sm text-gray-600 leading-relaxed">{demandeur.description ?? '—'}</p>
+                <p className="text-sm text-gray-600 leading-relaxed">{demandeur.description ?? '-'}</p>
               </div>
 
               {/* Contacts directs */}
@@ -322,7 +322,7 @@ export default function BailleurDemandeDetailPage() {
                 {docEnvoye || demande.contrat.fichier_contrat ? (
                   <div className="space-y-2">
                     <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-xs text-green-700">
-                      ✅ Contrat envoyé au client — en attente de sa signature.
+                      ✅ Contrat envoyé au client, en attente de sa signature.
                     </div>
                     {demande.contrat.fichier_signe_client && (
                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-700">
@@ -340,12 +340,12 @@ export default function BailleurDemandeDetailPage() {
                         className="w-full py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90"
                         style={{ backgroundColor: '#10B981' }}
                       >
-                        ✅ Valider la signature — autoriser le paiement
+                        ✅ Valider la signature pour autoriser le paiement
                       </button>
                     )}
                     {demande.contrat.statut === 'valide' && (
                       <div className="bg-green-100 border border-green-300 rounded-xl p-3 text-xs text-green-800 font-semibold text-center">
-                        🎉 Contrat validé — le client peut maintenant payer
+                        🎉 Contrat validé, le client peut maintenant payer
                       </div>
                     )}
                   </div>
@@ -370,7 +370,7 @@ export default function BailleurDemandeDetailPage() {
                       </div>
                       {caution && Number(caution) > 0 && (
                         <p className="text-xs text-amber-600 mt-1">
-                          Caution : <strong>{Number(caution).toLocaleString('fr-FR')} FCFA</strong> — remboursable à la fin du contrat sous conditions.
+                          Caution : <strong>{Number(caution).toLocaleString('fr-FR')} FCFA</strong>, remboursable à la fin du contrat sous conditions.
                         </p>
                       )}
                     </div>

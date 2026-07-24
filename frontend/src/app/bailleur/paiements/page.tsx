@@ -127,7 +127,7 @@ export default function BailleurPaiementsPage() {
                 <div key={p.id} className="bg-white rounded-xl p-4 flex items-center justify-between gap-4 shadow-sm">
                   <div>
                     <p className="font-semibold text-gray-900 text-sm">
-                      {MODE_LABEL[p.mode] ?? p.mode} — {Number(p.montant).toLocaleString('fr-FR')} FCFA
+                      {MODE_LABEL[p.mode] ?? p.mode} : {Number(p.montant).toLocaleString('fr-FR')} FCFA
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">Réf. {p.reference}</p>
                     <p className="text-xs text-gray-400">
@@ -183,7 +183,7 @@ export default function BailleurPaiementsPage() {
                         <Home size={18} style={{ color: '#4338CA' }} />
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900">{c.bien?.titre ?? '—'}</p>
+                        <p className="font-bold text-gray-900">{c.bien?.titre ?? '-'}</p>
                         <p className="text-xs text-gray-500">{c.bien?.adresse}, {c.bien?.ville}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-xs text-gray-400">N° {c.numero}</span>

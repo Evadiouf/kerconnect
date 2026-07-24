@@ -83,7 +83,7 @@ export default function BailleurRapportPage() {
 
           {/* En-tête impression */}
           <div className="hidden print:block mb-6 border-b pb-4">
-            <h2 className="text-xl font-bold">KerConnect — Rapport de revenus</h2>
+            <h2 className="text-xl font-bold">KerConnect : Rapport de revenus</h2>
             <p className="text-sm text-gray-500">{MOIS[mois]} {annee}</p>
           </div>
 
@@ -124,8 +124,8 @@ export default function BailleurRapportPage() {
                 <tbody className="divide-y divide-gray-50">
                   {filtres.map(p => (
                     <tr key={p.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">{p.contrat?.bien?.titre ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-500">{p.contrat?.locataire?.name ?? '—'}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900">{p.contrat?.bien?.titre ?? '-'}</td>
+                      <td className="px-4 py-3 text-gray-500">{p.contrat?.locataire?.name ?? '-'}</td>
                       <td className="px-4 py-3 text-gray-500">{MODE_LABEL[p.mode] ?? p.mode}</td>
                       <td className="px-4 py-3 font-bold">{Number(p.montant).toLocaleString('fr-FR')}</td>
                       <td className="px-4 py-3 text-orange-500">{Number(p.commission_montant ?? 0).toLocaleString('fr-FR')}</td>

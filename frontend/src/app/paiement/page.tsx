@@ -81,13 +81,17 @@ function PaiementForm() {
   const isPremierPaiement = paiementsConfirmes.length === 0
   const cautionMois       = contratData?.bien?.caution_mois ?? 0
   const isLocation        = contratData?.bien?.nature === 'location'
+  // 1er paiement : cautionMois × loyer = montant global (loyer du 1er mois + caution inclus)
+  // Mois suivants : loyer seul
   const cautionMontant    = isPremierPaiement && isLocation && cautionMois > 0
     ? cautionMois * montantBase
     : 0
 
-  // Commission sur le loyer uniquement (la caution est un dépôt remboursable)
+  // Commission toujours sur le loyer de base uniquement
   const commissionMontant = Math.round(montantBase * commissionTaux / 100)
-  const montantTotal      = montantBase + cautionMontant + commissionMontant
+  // Si caution : montant effectif = cautionMontant (loyer du 1er mois déjà inclus dedans)
+  const montantEffectif   = cautionMontant > 0 ? cautionMontant : montantBase
+  const montantTotal      = montantEffectif + commissionMontant
 
   // Champs espèce/chèque
   const [nom,  setNom]  = useState('')
@@ -164,7 +168,7 @@ function PaiementForm() {
         <h2 className="text-xl font-bold text-gray-900 mb-3">Contrat non signé</h2>
         <p className="text-gray-500 mb-6">
           Le contrat doit être signé par les deux parties avant d&apos;effectuer un paiement.
-          <br />Statut actuel : <span className="font-semibold text-yellow-600">{contratStatut ?? '—'}</span>
+          <br />Statut actuel : <span className="font-semibold text-yellow-600">{contratStatut ?? '-'}</span>
         </p>
         <button onClick={() => router.back()}
           className="px-6 py-3 rounded-xl text-white font-semibold text-sm hover:opacity-90"
@@ -184,24 +188,24 @@ function PaiementForm() {
         <div className="rounded-2xl p-5 border" style={{ backgroundColor: '#4338CA08', borderColor: '#4338CA20' }}>
           <p className="text-sm font-medium mb-3" style={{ color: '#4338CA' }}>{libelle}</p>
           <div className="space-y-2 text-sm mb-3">
-            <div className="flex justify-between text-gray-600">
-              <span>Loyer de base</span>
-              <span className="font-medium">{montantBase.toLocaleString('fr-FR')} FCFA</span>
-            </div>
+            {cautionMontant > 0 ? (
+              <div className="flex justify-between text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                <span className="font-medium">
+                  1er paiement (loyer + caution {cautionMois} mois)
+                </span>
+                <span className="font-bold">{cautionMontant.toLocaleString('fr-FR')} FCFA</span>
+              </div>
+            ) : (
+              <div className="flex justify-between text-gray-600">
+                <span>Loyer mensuel</span>
+                <span className="font-medium">{montantBase.toLocaleString('fr-FR')} FCFA</span>
+              </div>
+            )}
+
             <div className="flex justify-between text-gray-600">
               <span>Commission plateforme ({commissionTaux}%)</span>
               <span className="font-medium text-orange-500">+ {commissionMontant.toLocaleString('fr-FR')} FCFA</span>
             </div>
-
-            {cautionMontant > 0 && (
-              <div className="flex justify-between text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
-                <span className="font-medium">
-                  Caution ({cautionMois} mois)
-                  <span className="text-xs font-normal text-amber-500 ml-1">(1er paiement)</span>
-                </span>
-                <span className="font-bold">+ {cautionMontant.toLocaleString('fr-FR')} FCFA</span>
-              </div>
-            )}
 
             <div className="border-t border-gray-200 pt-2 flex justify-between">
               <span className="font-bold text-gray-900">Total à payer</span>

@@ -42,7 +42,7 @@ export default function AnnoncesPage() {
   const biens: Bien[]  = data?.data || []
   const forfait        = user?.forfait ?? 'starter'
   const limite         = FORFAIT_LIMITE[forfait] ?? 2
-  const actives        = biens.filter(b => b.statut === 'publie').length
+  const actives        = biens.filter(b => b.statut === 'publie' || b.statut === 'loue').length
   const limitAtteinte  = limite !== Infinity && actives >= limite
   const pct            = limite === Infinity ? 0 : Math.min(100, Math.round((actives / limite) * 100))
 
@@ -69,7 +69,7 @@ export default function AnnoncesPage() {
           </div>
           {limitAtteinte ? (
             <Link
-              href="/auth/paiement-inscription"
+              href="/tarifs"
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition-opacity"
               style={{ backgroundColor: '#E05C52' }}
             >
@@ -89,7 +89,7 @@ export default function AnnoncesPage() {
         {limitAtteinte && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
             Limite atteinte : le forfait <strong>{FORFAIT_NOM[forfait]}</strong> autorise {limite} annonce{limite > 1 ? 's' : ''} active{limite > 1 ? 's' : ''} maximum.
-            Passez à <Link href="/auth/paiement-inscription" className="underline font-semibold">Pro ou Pro Max</Link> pour publier davantage.
+            Passez à <Link href="/tarifs" className="underline font-semibold">Pro ou Pro Max</Link> pour publier davantage.
           </div>
         )}
 

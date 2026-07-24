@@ -105,7 +105,7 @@ export default function AdminUsersPage() {
                         {u.role}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-sm text-gray-500">{u.phone || '—'}</td>
+                    <td className="px-4 py-4 text-sm text-gray-500">{u.phone || '-'}</td>
                     <td className="px-4 py-4 text-sm text-gray-500">
                       {new Date(u.created_at).toLocaleDateString('fr-FR')}
                     </td>

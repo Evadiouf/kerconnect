@@ -138,8 +138,8 @@ export default function AdminSettingsPage() {
                 <tbody className="divide-y divide-gray-50">
                   {paiements.map((p: {id: number; payeur?: {name: string}; contrat?: {bien?: {titre: string}}; montant: number; commission_montant: number; montant_net: number; created_at: string}) => (
                     <tr key={p.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium">{p.payeur?.name ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-500">{p.contrat?.bien?.titre ?? '—'}</td>
+                      <td className="px-4 py-3 font-medium">{p.payeur?.name ?? '-'}</td>
+                      <td className="px-4 py-3 text-gray-500">{p.contrat?.bien?.titre ?? '-'}</td>
                       <td className="px-4 py-3 font-bold">{Number(p.montant).toLocaleString('fr-FR')}</td>
                       <td className="px-4 py-3 text-green-600 font-bold">{Number(p.commission_montant).toLocaleString('fr-FR')}</td>
                       <td className="px-4 py-3 text-gray-700">{Number(p.montant_net).toLocaleString('fr-FR')}</td>

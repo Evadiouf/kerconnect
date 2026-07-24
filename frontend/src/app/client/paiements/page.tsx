@@ -59,9 +59,9 @@ export default function ClientPaiementsPage() {
     } catch { /* reçu pas encore généré */ }
   }
 
-  const total     = paiements.reduce((s, p) => s + (p.statut === 'confirme' ? p.montant : 0), 0)
-  const totalBase = paiements.reduce((s, p) => s + (p.statut === 'confirme' ? (p.montant_base ?? p.montant) : 0), 0)
-  const totalComm = paiements.reduce((s, p) => s + (p.statut === 'confirme' ? (p.commission_montant ?? 0) : 0), 0)
+  const total     = paiements.reduce((s, p) => s + (p.statut === 'confirme' ? Number(p.montant) : 0), 0)
+  const totalBase = paiements.reduce((s, p) => s + (p.statut === 'confirme' ? Number(p.montant_base ?? p.montant) : 0), 0)
+  const totalComm = paiements.reduce((s, p) => s + (p.statut === 'confirme' ? Number(p.commission_montant ?? 0) : 0), 0)
 
   return (
     <DashboardLayout>

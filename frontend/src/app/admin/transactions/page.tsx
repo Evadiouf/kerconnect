@@ -100,7 +100,7 @@ export default function AdminTransactionsPage() {
                         </span>
                       </td>
                       <td className="px-4 py-4 text-xs text-gray-400">
-                        {p.paye_at ? new Date(p.paye_at).toLocaleDateString('fr-FR') : '—'}
+                        {p.paye_at ? new Date(p.paye_at).toLocaleDateString('fr-FR') : '-'}
                       </td>
                     </tr>
                   )

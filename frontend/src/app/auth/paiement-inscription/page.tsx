@@ -126,13 +126,16 @@ export default function PaiementInscriptionPage() {
   const [error, setError]               = useState('')
   const [annuel, setAnnuel]             = useState(false)
   const [waitingForfait, setWaitingForfait] = useState<string>('')
+  const [isUpgrade, setIsUpgrade]       = useState(false)
+  const [currentForfait, setCurrentForfait] = useState<string>('')
 
-  // Détection: si le bailleur a déjà soumis une demande → afficher 'waiting' directement
+  // Détection: si déjà inscrit → mode upgrade (ne pas rediriger)
   useEffect(() => {
     api.get('/v1/inscription/frais')
       .then(r => {
         if (r.data.inscription_payee) {
-          router.push(ROLE_REDIRECT[user?.role ?? 'bailleur'] ?? '/bailleur/dashboard')
+          setIsUpgrade(true)
+          setCurrentForfait(r.data.forfait ?? 'starter')
           return
         }
         if (r.data.inscription_at) {
@@ -583,8 +586,9 @@ export default function PaiementInscriptionPage() {
       <div className="pi-topbar">
         <KerConnectLogo width={120} />
         <span className="pi-step-pill">
-          {step === 'choose' && <>Étape <strong>2</strong> / 2 · Choisissez votre forfait</>}
-          {step === 'pay'    && <>Étape <strong>2</strong> / 2 · Paiement {selectedPlan?.name}</>}
+          {step === 'choose' && !isUpgrade && <>Étape <strong>2</strong> / 2 · Choisissez votre forfait</>}
+          {step === 'choose' && isUpgrade  && <>Mise à niveau · Forfait actuel : <strong>{FORFAIT_LABELS[currentForfait] ?? currentForfait}</strong></>}
+          {step === 'pay'    && <>Paiement {selectedPlan?.name}</>}
           {step === 'waiting' && <>Demande soumise · En attente de confirmation</>}
         </span>
         <button className="pi-logout-btn" onClick={handleLogout}>Se déconnecter</button>
@@ -597,13 +601,18 @@ export default function PaiementInscriptionPage() {
         ══════════════════════════════════════ */}
         {step === 'choose' && (<>
           <div className="pi-hero">
-            <span className="pi-eyebrow">Activation du compte</span>
+            <span className="pi-eyebrow">{isUpgrade ? 'Mise à niveau du compte' : 'Activation du compte'}</span>
             <h1 className="pi-title">
-              Choisissez le forfait qui<br />
-              correspond à <em>votre activité</em>
+              {isUpgrade
+                ? <>Passez à un forfait supérieur</>
+                : <>Choisissez le forfait qui<br />correspond à <em>votre activité</em></>
+              }
             </h1>
             <p className="pi-sub">
-              Commencez gratuitement ou choisissez un forfait payant pour une commission réduite et plus d&apos;annonces.
+              {isUpgrade
+                ? `Vous êtes actuellement sur le forfait ${FORFAIT_LABELS[currentForfait] ?? currentForfait}. Choisissez Pro ou Pro Max pour publier plus d'annonces.`
+                : "Commencez gratuitement ou choisissez un forfait payant pour une commission réduite et plus d'annonces."
+              }
             </p>
 
             <div className="pi-toggle-row">
@@ -619,7 +628,7 @@ export default function PaiementInscriptionPage() {
           {error && <p className="pi-err">{error}</p>}
 
           <div className="pi-cards">
-            {PLANS.map(plan => {
+            {PLANS.filter(plan => !isUpgrade || plan.id !== 'starter').map(plan => {
               const v          = plan.variant
               const isLoading  = loadingPlan === plan.id
               const isDisabled = loadingPlan !== null
@@ -673,7 +682,10 @@ export default function PaiementInscriptionPage() {
           </div>
 
           <p className="pi-footnote">
-            30 jours d&apos;essai gratuits · Passe à Pro ou Pro Max ensuite<br />
+            {isUpgrade
+              ? <>Votre nouvelle souscription sera active après confirmation de l&apos;admin.<br /></>
+              : <>30 jours d&apos;essai gratuits · Passe à Pro ou Pro Max ensuite<br /></>
+            }
             Des questions ? <a href="/contact">Contactez notre équipe</a>.
           </p>
         </>)}

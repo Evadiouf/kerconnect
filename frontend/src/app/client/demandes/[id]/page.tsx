@@ -82,9 +82,9 @@ export default function ClientDemandeDetailPage() {
   }
 
   const STATUT_LABELS: Record<string, string> = {
-    soumise:  'Soumise — En attente de réponse',
+    soumise:  'Soumise : En attente de réponse',
     en_cours: 'En cours de traitement',
-    acceptee: 'Acceptée — À signer',
+    acceptee: 'Acceptée : À signer',
     refusee:  'Refusée',
   }
 
@@ -292,7 +292,7 @@ export default function ClientDemandeDetailPage() {
 
                   {/* Étape 1 : Télécharger le modèle */}
                   <div className={`rounded-xl p-3 text-xs ${contrat.fichier_contrat ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'}`}>
-                    <p className="font-semibold mb-1">{contrat.fichier_contrat ? '✅' : '⏳'} Étape 1 — Modèle de contrat</p>
+                    <p className="font-semibold mb-1">{contrat.fichier_contrat ? '✅' : '⏳'} Étape 1 : Modèle de contrat</p>
                     {contrat.fichier_contrat ? (
                       <a href={`${storageBase}/${contrat.fichier_contrat}`}
                         target="_blank"
@@ -308,7 +308,7 @@ export default function ClientDemandeDetailPage() {
                   {/* Étape 2 : Signer et renvoyer */}
                   {contrat.fichier_contrat && (
                     <div className={`rounded-xl p-3 text-xs ${contrat.fichier_signe_client ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
-                      <p className="font-semibold mb-1">{contrat.fichier_signe_client ? '✅' : '✍️'} Étape 2 — Signer et renvoyer</p>
+                      <p className="font-semibold mb-1">{contrat.fichier_signe_client ? '✅' : '✍️'} Étape 2 : Signer et renvoyer</p>
                       {contrat.fichier_signe_client ? (
                         <p className="text-green-700">Document signé envoyé · En attente de validation du bailleur.</p>
                       ) : (
@@ -332,7 +332,7 @@ export default function ClientDemandeDetailPage() {
                   {/* Étape 3 : Validation bailleur */}
                   {contrat.fichier_signe_client && (
                     <div className={`rounded-xl p-3 text-xs ${contrat.statut === 'valide' ? 'bg-green-50 border border-green-200' : 'bg-blue-50 border border-blue-200'}`}>
-                      <p className="font-semibold mb-1">{contrat.statut === 'valide' ? '✅' : '⏳'} Étape 3 — Validation du bailleur</p>
+                      <p className="font-semibold mb-1">{contrat.statut === 'valide' ? '✅' : '⏳'} Étape 3 : Validation du bailleur</p>
                       {contrat.statut === 'valide'
                         ? <p className="text-green-700">Contrat validé ! Vous pouvez payer.</p>
                         : <p className="text-blue-700">En attente que le bailleur valide votre signature.</p>
@@ -343,7 +343,7 @@ export default function ClientDemandeDetailPage() {
                   {/* Étape 4 : Payer */}
                   {contrat.statut === 'valide' && (
                     <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-                      <p className="text-xs font-semibold text-green-800 mb-2">✅ Étape 4 — Payer</p>
+                      <p className="text-xs font-semibold text-green-800 mb-2">✅ Étape 4 : Payer</p>
                       <button
                         onClick={() => router.push(
                           `/paiement?contrat_id=${contrat.id}&montant=${contrat.montant}&libelle=${encodeURIComponent('Loyer : ' + bien?.titre)}`
