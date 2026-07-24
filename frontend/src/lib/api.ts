@@ -20,10 +20,15 @@ api.interceptors.request.use((config) => {
 
 let redirecting = false
 
+// Routes publiques auth : le 401 = mauvais identifiants, pas session expirée
+const AUTH_PUBLIC_PATHS = ['/auth/login', '/auth/register', '/auth/verify-otp', '/auth/forgot-password', '/auth/reset-password', '/auth/admin/confirm']
+
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401 && typeof window !== 'undefined' && !redirecting) {
+    const url = err.config?.url ?? ''
+    const isPublicAuth = AUTH_PUBLIC_PATHS.some((p) => url.includes(p))
+    if (err.response?.status === 401 && typeof window !== 'undefined' && !redirecting && !isPublicAuth) {
       redirecting = true
       // Vider store + cookies + token, puis rediriger sans reboucler
       useAuthStore.getState().clearAuth()
