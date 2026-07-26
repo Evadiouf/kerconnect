@@ -64,3 +64,4 @@ backend/php
 # Outils locaux (binaires tiers)
 tools/
 documentation/
+*.md
