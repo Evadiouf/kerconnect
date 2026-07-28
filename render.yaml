@@ -1,0 +1,90 @@
+services:
+  # ── Backend Laravel (Docker)
+  - type: web
+    name: kerconnect-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    envVars:
+      - key: APP_NAME
+        value: KerConnect
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        value: https://kerconnect-backend.onrender.com
+      - key: FRONTEND_URL
+        value: https://kerconnect-frontend.onrender.com
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: kerconnect-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: kerconnect-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: kerconnect-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: kerconnect-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: kerconnect-db
+          property: password
+      - key: MAIL_MAILER
+        value: smtp
+      - key: MAIL_SCHEME
+        value: smtps
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: 465
+      - key: MAIL_USERNAME
+        value: contact@naratechvision.com
+      - key: MAIL_PASSWORD
+        sync: false   # Saisir manuellement dans Render Dashboard
+      - key: MAIL_FROM_ADDRESS
+        value: contact@naratechvision.com
+      - key: MAIL_FROM_NAME
+        value: KerConnect
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_STORE
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: FILESYSTEM_DISK
+        value: public
+
+  # ── Frontend Next.js (natif Node)
+  - type: web
+    name: kerconnect-frontend
+    runtime: node
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://kerconnect-backend.onrender.com/api
+      - key: NODE_ENV
+        value: production
+
+# ── Base de données PostgreSQL managée
+databases:
+  - name: kerconnect-db
+    plan: free
+    databaseName: kerconnect
+    user: kerconnect_user

@@ -13,13 +13,18 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      mysql:
-        image: mysql:8.0
+      postgres:
+        image: postgres:17
         env:
-          MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: kerconnect_test
-        ports: ['3306:3306']
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: kerconnect_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -28,7 +33,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-          extensions: mbstring, xml, ctype, json, bcmath, pdo_mysql, openssl, curl, zip
+          extensions: mbstring, xml, ctype, json, bcmath, pdo_pgsql, openssl, curl, zip, gd
 
       - name: Install dependencies
         working-directory: backend
@@ -39,11 +44,12 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate
-          sed -i 's/DB_CONNECTION=sqlite/DB_CONNECTION=mysql/' .env
-          sed -i 's/#DB_HOST=127.0.0.1/DB_HOST=127.0.0.1/' .env
-          sed -i 's/#DB_DATABASE=laravel/DB_DATABASE=kerconnect_test/' .env
-          sed -i 's/#DB_USERNAME=root/DB_USERNAME=root/' .env
-          sed -i 's/#DB_PASSWORD=/DB_PASSWORD=password/' .env
+          sed -i 's/DB_CONNECTION=pgsql/DB_CONNECTION=pgsql/' .env
+          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_PORT=5432" >> .env
+          echo "DB_DATABASE=kerconnect_test" >> .env
+          echo "DB_USERNAME=postgres" >> .env
+          echo "DB_PASSWORD=password" >> .env
 
       - name: Run migrations
         working-directory: backend
@@ -87,7 +93,7 @@ jobs:
       - name: Build
         working-directory: frontend
         env:
-          NEXT_PUBLIC_API_URL: https://kerconnect-api.naratechvision.com/api
+          NEXT_PUBLIC_API_URL: https://kerconnect-backend.onrender.com/api
         run: npm run build
 
       - name: Security audit
@@ -115,5 +121,5 @@ jobs:
       - name: Notify deployment
         run: |
           echo "Déploiement KerConnect déclenché sur Render"
-          echo "Backend : kerconnect-api.naratechvision.com"
-          echo "Frontend : kerconnect.naratechvision.com"
+          echo "Backend  : https://kerconnect-backend.onrender.com"
+          echo "Frontend : https://kerconnect-frontend.onrender.com"
