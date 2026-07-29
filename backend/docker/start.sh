@@ -1,7 +1,6 @@
 #!/bin/sh
 set -e
 
-# PORT injecté par Render (défaut 10000)
 export PORT="${PORT:-10000}"
 
 echo "==> KerConnect Backend — démarrage sur le port $PORT"
@@ -15,17 +14,16 @@ if [ -z "$APP_KEY" ]; then
     php artisan key:generate --force
 fi
 
-# Caches Laravel (prod)
+# Caches Laravel (prod) — pas de view:cache, backend API sans Blade
 echo "==> Cache config/routes..."
 php artisan config:cache
 php artisan route:cache
-php artisan view:cache
 
 # Migrations
 echo "==> Migrations..."
 php artisan migrate --force
 
-# Lien storage
+# Lien storage (non-fatal si déjà existant)
 echo "==> Storage link..."
 php artisan storage:link || true
 
