@@ -16,9 +16,9 @@ services:
       - key: APP_KEY
         generateValue: true
       - key: APP_URL
-        value: https://kerconnect-backend.onrender.com
+        value: https://api.kerconnect.naratechvision.com
       - key: FRONTEND_URL
-        value: https://kerconnect-frontend.onrender.com
+        value: https://kerconnect.naratechvision.com
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST
@@ -84,7 +84,7 @@ services:
     plan: free
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: https://kerconnect-backend.onrender.com/api
+        value: https://api.kerconnect.naratechvision.com/api
       - key: NODE_ENV
         value: production
 
