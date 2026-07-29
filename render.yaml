@@ -67,6 +67,12 @@ services:
         value: stderr
       - key: FILESYSTEM_DISK
         value: public
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
 
   # ── Frontend Next.js (natif Node)
   - type: web

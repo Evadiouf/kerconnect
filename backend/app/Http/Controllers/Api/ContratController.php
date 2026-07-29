@@ -79,7 +79,10 @@ class ContratController extends Controller
         $request->validate(['fichier' => 'required|mimes:pdf|max:10240']);
 
         $contrat = \App\Models\Contrat::with(['locataire', 'bien:id,titre'])->where('bailleur_id', $request->user()->id)->findOrFail($id);
-        $path = $request->file('fichier')->store("contrats/{$contrat->id}/modele", 'public');
+        $path = (new \App\Services\CloudinaryService())->upload(
+            $request->file('fichier'),
+            "contrats/{$contrat->id}/modele"
+        );
 
         $contrat->update([
             'fichier_contrat' => $path,
@@ -101,7 +104,7 @@ class ContratController extends Controller
 
         return response()->json([
             'message'  => 'Modèle de contrat envoyé au client.',
-            'url'      => url("storage/{$path}"),
+            'url'      => $path,
             'contrat'  => $contrat->fresh(),
         ]);
     }
@@ -113,7 +116,10 @@ class ContratController extends Controller
 
         $contrat = \App\Models\Contrat::with(['bailleur', 'locataire', 'bien:id,titre'])
             ->where('locataire_id', $request->user()->id)->findOrFail($id);
-        $path = $request->file('fichier')->store("contrats/{$contrat->id}/signe", 'public');
+        $path = (new \App\Services\CloudinaryService())->upload(
+            $request->file('fichier'),
+            "contrats/{$contrat->id}/signe"
+        );
 
         $contrat->update([
             'fichier_signe_client' => $path,
@@ -136,7 +142,7 @@ class ContratController extends Controller
 
         return response()->json([
             'message' => 'Document signé envoyé au bailleur.',
-            'url'     => url("storage/{$path}"),
+            'url'     => $path,
             'contrat' => $contrat->fresh(),
         ]);
     }

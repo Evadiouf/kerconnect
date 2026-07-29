@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bien;
+use App\Services\CloudinaryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -98,21 +99,23 @@ class BienController extends Controller
             'statut'  => 'publie',
         ]);
 
+        $cloudinary = new CloudinaryService();
+
         $images = [];
         if ($request->hasFile('photos')) {
             foreach ($request->file('photos') as $photo) {
-                $images[] = $photo->store("biens/{$bien->id}/photos", 'public');
+                $images[] = $cloudinary->upload($photo, "biens/{$bien->id}/photos");
             }
         }
 
         $videoPath = null;
         if ($request->hasFile('video')) {
-            $videoPath = $request->file('video')->store("biens/{$bien->id}", 'public');
+            $videoPath = $cloudinary->upload($request->file('video'), "biens/{$bien->id}");
         }
 
         $contratPath = null;
         if ($request->hasFile('contrat_modele')) {
-            $contratPath = $request->file('contrat_modele')->store("biens/{$bien->id}", 'public');
+            $contratPath = $cloudinary->upload($request->file('contrat_modele'), "biens/{$bien->id}");
         }
 
         if ($images || $videoPath || $contratPath) {
@@ -142,20 +145,22 @@ class BienController extends Controller
 
         $bien->update($request->only(['titre','type','nature','prix','caution_mois','description','adresse','ville','surface','chambres','salles_bain','equipements']));
 
+        $cloudinary = new CloudinaryService();
+
         if ($request->hasFile('photos')) {
             $images = [];
             foreach ($request->file('photos') as $photo) {
-                $images[] = $photo->store("biens/{$bien->id}/photos", 'public');
+                $images[] = $cloudinary->upload($photo, "biens/{$bien->id}/photos");
             }
             $bien->update(['images' => $images]);
         }
 
         if ($request->hasFile('video')) {
-            $bien->update(['video' => $request->file('video')->store("biens/{$bien->id}", 'public')]);
+            $bien->update(['video' => $cloudinary->upload($request->file('video'), "biens/{$bien->id}")]);
         }
 
         if ($request->hasFile('contrat_modele')) {
-            $bien->update(['contrat_modele' => $request->file('contrat_modele')->store("biens/{$bien->id}", 'public')]);
+            $bien->update(['contrat_modele' => $cloudinary->upload($request->file('contrat_modele'), "biens/{$bien->id}")]);
         }
 
         return response()->json(['message' => 'Annonce mise à jour.', 'bien' => $bien->fresh()]);
@@ -202,14 +207,10 @@ class BienController extends Controller
     {
         $bien = Bien::where('id', $id)->where('user_id', $request->user()->id)->firstOrFail();
 
-        // Supprimer les fichiers stockés
-        if ($bien->images) {
-            foreach ($bien->images as $path) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($path);
-            }
-        }
-        if ($bien->video)          \Illuminate\Support\Facades\Storage::disk('public')->delete($bien->video);
-        if ($bien->contrat_modele) \Illuminate\Support\Facades\Storage::disk('public')->delete($bien->contrat_modele);
+        $cloudinary = new CloudinaryService();
+        if ($bien->images)         $cloudinary->deleteMany($bien->images);
+        if ($bien->video)          $cloudinary->delete($bien->video);
+        if ($bien->contrat_modele) $cloudinary->delete($bien->contrat_modele);
 
         $bien->delete();
         return response()->json(['message' => 'Annonce supprimée définitivement.']);

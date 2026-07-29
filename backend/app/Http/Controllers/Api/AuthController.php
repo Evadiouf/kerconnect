@@ -100,7 +100,10 @@ class AuthController extends Controller
 
         $contratPath = null;
         if ($request->hasFile('contrat_location')) {
-            $contratPath = $request->file('contrat_location')->store('contrats_inscription', 'public');
+            $contratPath = (new \App\Services\CloudinaryService())->upload(
+                $request->file('contrat_location'),
+                'contrats_inscription'
+            );
         }
 
         $user = User::create([

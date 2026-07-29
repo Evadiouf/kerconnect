@@ -25,7 +25,12 @@ class Bien extends Model
     public function getImagesUrlsAttribute(): array
     {
         if (empty($this->images)) return [];
-        return array_map(fn($path) => url("storage/{$path}"), $this->images);
+        // Les nouvelles images sont des URLs Cloudinary complètes
+        // Les anciennes (avant migration) étaient des chemins locaux
+        return array_map(
+            fn($path) => str_starts_with($path, 'http') ? $path : url("storage/{$path}"),
+            $this->images
+        );
     }
 
     public function bailleur() { return $this->belongsTo(User::class, 'user_id'); }
