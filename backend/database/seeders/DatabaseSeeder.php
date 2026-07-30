@@ -23,11 +23,12 @@ class DatabaseSeeder extends Seeder
         Setting::set('plateforme_nom',     'KerConnect', 'Nom de la plateforme');
         Setting::set('plateforme_email',   'contact@naratechvision.com', 'Email contact');
 
-        // Compte administrateur Hawoly (Naratechvision)
+        // Compte administrateur principal (Naratechvision)
         User::updateOrCreate(
-            ['email' => 'demehawoly@gmail.com'],
+            ['role' => 'admin'],
             [
                 'name'              => 'Hawoly Admin',
+                'email'             => 'contact@naratechvision.com',
                 'password'          => bcrypt('KerConnect2026!'),
                 'role'              => 'admin',
                 'email_verified_at' => now(),
