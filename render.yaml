@@ -84,7 +84,7 @@ services:
     plan: free
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: https://api.kerconnect.naratechvision.com/api
+        value: https://kerconnect-backend.onrender.com/api
       - key: NODE_ENV
         value: production
 
