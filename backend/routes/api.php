@@ -10,6 +10,9 @@ use App\Http\Controllers\Api\PaiementController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
+// ── Health check (keep-alive UptimeRobot)
+Route::get('/v1/health', fn() => response()->json(['status' => 'ok']));
+
 // ── Webhook PayDunya (public, pas d'auth)
 Route::post('/v1/paiements/webhook', [PaiementController::class, 'webhook']);
 
