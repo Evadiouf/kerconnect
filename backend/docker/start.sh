@@ -23,6 +23,10 @@ php artisan route:cache
 echo "==> Migrations..."
 php artisan migrate --force
 
+# Seed admin + paramètres (updateOrCreate — sans danger à chaque démarrage)
+echo "==> Seed admin..."
+php artisan db:seed --force
+
 # Lien storage (non-fatal si déjà existant)
 echo "==> Storage link..."
 php artisan storage:link || true
