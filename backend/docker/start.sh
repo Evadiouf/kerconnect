@@ -14,6 +14,12 @@ if [ -z "$APP_KEY" ]; then
     php artisan key:generate --force
 fi
 
+# Recréer les répertoires storage nécessaires
+echo "==> Préparation storage..."
+mkdir -p storage/framework/{cache,sessions,views} storage/logs
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+
 # Caches Laravel (prod) — pas de view:cache, backend API sans Blade
 echo "==> Cache config/routes..."
 php artisan config:cache
