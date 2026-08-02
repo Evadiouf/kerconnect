@@ -322,15 +322,16 @@ class AuthController extends Controller
             'expires_at' => now()->addMinutes(10),
         ]);
 
-        // Tenter l'envoi email — ne pas bloquer si échec en local
         try {
+            \Log::info("[MAIL] Tentative envoi OTP à {$email} via " . config('mail.mailer') . " host=" . config('mail.mailers.smtp.host') . " port=" . config('mail.mailers.smtp.port'));
             Mail::raw(
                 "Votre code KerConnect : {$code}\n\nCe code expire dans 10 minutes.",
                 fn($msg) => $msg->to($email)->subject('Code de vérification KerConnect')
             );
+            \Log::info("[MAIL] OTP envoyé avec succès à {$email}");
         } catch (\Exception $e) {
-            // En local sans serveur mail configuré, on continue silencieusement
-            \Log::warning("Email OTP non envoyé pour {$email}: " . $e->getMessage());
+            \Log::error("[MAIL] ÉCHEC envoi OTP à {$email}: " . $e->getMessage());
+            \Log::error("[MAIL] Config: mailer=" . config('mail.mailer') . " host=" . config('mail.mailers.smtp.host') . " port=" . config('mail.mailers.smtp.port') . " user=" . config('mail.mailers.smtp.username'));
         }
 
         return $code;
