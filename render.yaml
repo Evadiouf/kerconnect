@@ -42,21 +42,13 @@ services:
           name: kerconnect-db
           property: password
       - key: MAIL_MAILER
-        value: smtp
-      - key: MAIL_HOST
-        value: smtp.gmail.com
-      - key: MAIL_PORT
-        value: 587
-      - key: MAIL_SCHEME
-        value: smtp
-      - key: MAIL_USERNAME
-        value: contact@naratechvision.com
-      - key: MAIL_PASSWORD
-        sync: false
+        value: resend
       - key: MAIL_FROM_ADDRESS
-        value: contact@naratechvision.com
+        value: onboarding@resend.dev
       - key: MAIL_FROM_NAME
         value: KerConnect
+      - key: RESEND_KEY
+        sync: false
       - key: SESSION_DRIVER
         value: array
       - key: VIEW_COMPILED_PATH
