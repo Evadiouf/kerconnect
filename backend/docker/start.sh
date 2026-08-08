@@ -8,9 +8,9 @@ echo "==> KerConnect Backend — démarrage sur le port $PORT"
 # Générer la config Nginx avec le bon PORT
 envsubst '$PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
-# Générer APP_KEY si absent
-if [ -z "$APP_KEY" ]; then
-    echo "==> Génération de APP_KEY..."
+# Générer APP_KEY si absent ou format invalide (doit commencer par base64:)
+if [ -z "$APP_KEY" ] || ! echo "$APP_KEY" | grep -q "^base64:"; then
+    echo "==> Génération de APP_KEY (clé absente ou format invalide)..."
     php artisan key:generate --force
 fi
 
