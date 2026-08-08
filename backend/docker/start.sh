@@ -16,7 +16,10 @@ fi
 
 # Recréer les répertoires storage nécessaires
 echo "==> Préparation storage..."
-mkdir -p storage/framework/{cache,sessions,views} storage/logs
+mkdir -p storage/framework/cache
+mkdir -p storage/framework/sessions
+mkdir -p storage/framework/views
+mkdir -p storage/logs
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
