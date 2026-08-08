@@ -28,7 +28,11 @@ WORKDIR /var/www/html
 COPY . .
 
 # Créer les répertoires requis par Laravel avant composer install
-RUN mkdir -p bootstrap/cache storage/framework/{cache,sessions,views} storage/logs \
+RUN mkdir -p bootstrap/cache \
+ && mkdir -p storage/framework/cache \
+ && mkdir -p storage/framework/sessions \
+ && mkdir -p storage/framework/views \
+ && mkdir -p storage/logs \
  && chmod -R 775 bootstrap/cache storage
 
 # Installer les dépendances PHP (prod uniquement)

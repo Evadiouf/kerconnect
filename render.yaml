@@ -58,7 +58,9 @@ services:
       - key: MAIL_FROM_NAME
         value: KerConnect
       - key: SESSION_DRIVER
-        value: file
+        value: array
+      - key: VIEW_COMPILED_PATH
+        value: /var/www/html/storage/framework/views
       - key: CACHE_STORE
         value: file
       - key: QUEUE_CONNECTION
