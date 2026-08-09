@@ -42,8 +42,9 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 RUN chown -R www-data:www-data storage bootstrap/cache \
  && chmod -R 775 storage bootstrap/cache
 
-# Configs Nginx et supervisor
+# Configs Nginx, PHP et supervisor
 COPY docker/nginx.conf.template /etc/nginx/nginx.conf.template
+COPY docker/php.ini /usr/local/etc/php/conf.d/kerconnect.ini
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/start.sh /start.sh
 RUN chmod +x /start.sh

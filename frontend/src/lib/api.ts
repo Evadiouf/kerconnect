@@ -11,9 +11,10 @@ api.interceptors.request.use((config) => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
   if (token) config.headers.Authorization = `Bearer ${token}`
 
-  // Pour les FormData, laisser le navigateur poser Content-Type avec la boundary
+  // Pour les FormData : supprimer Content-Type (boundary auto) + timeout plus long
   if (config.data instanceof FormData) {
     delete config.headers['Content-Type']
+    config.timeout = 120000
   }
 
   return config
