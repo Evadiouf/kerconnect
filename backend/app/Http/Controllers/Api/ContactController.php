@@ -22,7 +22,7 @@ class ContactController extends Controller
             Mail::raw(
                 "Nouveau message de conseil\n\nNom : {$request->nom}\nEmail : {$request->email}\nSujet : {$request->sujet}\n\n{$request->message}",
                 function ($m) use ($request) {
-                    $m->to(config('mail.from.address'))
+                    $m->to(config('mail.admin_email', 'contact@naratechvision.com'))
                       ->subject('KerConnect : ' . ($request->sujet ?? 'Demande de conseil'))
                       ->replyTo($request->email, $request->nom);
                 }

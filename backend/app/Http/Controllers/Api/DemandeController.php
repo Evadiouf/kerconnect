@@ -228,7 +228,7 @@ class DemandeController extends Controller
                 'bien_id'      => $demande->bien_id,
                 'bailleur_id'  => $request->user()->id,
                 'locataire_id' => $demande->demandeur_id,
-                'numero'       => 'CTR-' . date('Y') . '-' . str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT),
+                'numero'       => 'CTR-' . date('Y') . '-' . strtoupper(\Illuminate\Support\Str::random(6)),
                 'type'         => $demande->bien->nature === 'vente' ? 'vente' : 'bail',
                 'montant'      => $demande->bien->prix,
                 'date_debut'   => now()->toDateString(),
