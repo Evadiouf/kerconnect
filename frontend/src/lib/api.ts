@@ -14,7 +14,7 @@ api.interceptors.request.use((config) => {
   // Pour les FormData : supprimer Content-Type (boundary auto) + timeout plus long
   if (config.data instanceof FormData) {
     delete config.headers['Content-Type']
-    config.timeout = 120000
+    config.timeout = 300000
   }
 
   return config

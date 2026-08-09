@@ -76,7 +76,7 @@ class ContratController extends Controller
     // Bailleur : envoyer le modèle de contrat (PDF)
     public function uploadModele(\Illuminate\Http\Request $request, string $id): \Illuminate\Http\JsonResponse
     {
-        $request->validate(['fichier' => 'required|mimes:pdf|max:10240']);
+        $request->validate(['fichier' => 'required|file|mimes:pdf,doc,docx,odt|max:20480']);
 
         $contrat = \App\Models\Contrat::with(['locataire', 'bien:id,titre'])->where('bailleur_id', $request->user()->id)->findOrFail($id);
         $path = (new \App\Services\CloudinaryService())->upload(
@@ -112,7 +112,7 @@ class ContratController extends Controller
     // Client : uploader le contrat signé (PDF/image)
     public function uploadSigne(\Illuminate\Http\Request $request, string $id): \Illuminate\Http\JsonResponse
     {
-        $request->validate(['fichier' => 'required|mimes:pdf,jpg,jpeg,png|max:10240']);
+        $request->validate(['fichier' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png,gif,webp,heic,heif|max:20480']);
 
         $contrat = \App\Models\Contrat::with(['bailleur', 'locataire', 'bien:id,titre'])
             ->where('locataire_id', $request->user()->id)->findOrFail($id);
