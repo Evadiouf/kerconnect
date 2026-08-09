@@ -320,7 +320,7 @@ export default function ClientDemandeDetailPage() {
                           <label className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-semibold cursor-pointer hover:opacity-90 disabled:opacity-50"
                             style={{ backgroundColor: signing ? '#9CA3AF' : '#E05C52' }}>
                             {signing ? '⏳ Envoi...' : '📤 Uploader le contrat signé'}
-                            <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden"
+                            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,.heic,.heif" className="hidden"
                               disabled={signing}
                               onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadSigne(contrat.id, f) }} />
                           </label>

@@ -211,8 +211,8 @@ export default function AjouterAnnoncePage() {
                 {/* Photos */}
                 <div className="border-2 border-dashed border-gray-200 rounded-xl p-5 text-center hover:border-[#4338CA] transition-colors">
                   <p className="text-sm font-medium text-gray-700 mb-1">Photos du bien</p>
-                  <p className="text-xs text-gray-400 mb-3">JPG, PNG, WEBP, max 5 Mo par photo</p>
-                  <input type="file" accept="image/*" multiple className="hidden" id="file-photos"
+                  <p className="text-xs text-gray-400 mb-3">JPG, PNG, WEBP, HEIC, AVIF, max 30 Mo par photo</p>
+                  <input type="file" accept="image/*,.heic,.heif,.avif" multiple className="hidden" id="file-photos"
                     onChange={(e) => setPhotos(Array.from(e.target.files ?? []))} />
                   <label htmlFor="file-photos" className="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium"
                     style={{ backgroundColor: 'rgba(67,56,202,0.06)', color: '#4338CA' }}>
@@ -226,8 +226,8 @@ export default function AjouterAnnoncePage() {
                 {/* Vidéo */}
                 <div className="border-2 border-dashed border-gray-200 rounded-xl p-5 text-center hover:border-[#4338CA] transition-colors">
                   <p className="text-sm font-medium text-gray-700 mb-1">Vidéo de présentation</p>
-                  <p className="text-xs text-gray-400 mb-3">MP4, max 50 Mo</p>
-                  <input type="file" accept="video/mp4,video/*" className="hidden" id="file-video"
+                  <p className="text-xs text-gray-400 mb-3">MP4, MOV, AVI, MKV, WEBM, 3GP… max 100 Mo</p>
+                  <input type="file" accept="video/*,.mkv,.avi,.wmv,.flv,.m4v,.3gp" className="hidden" id="file-video"
                     onChange={(e) => setVideo(e.target.files?.[0] ?? null)} />
                   <label htmlFor="file-video" className="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium"
                     style={{ backgroundColor: 'rgba(67,56,202,0.06)', color: '#4338CA' }}>
@@ -239,12 +239,12 @@ export default function AjouterAnnoncePage() {
                 {/* Contrat */}
                 <div className="border-2 border-dashed border-gray-200 rounded-xl p-5 text-center hover:border-[#4338CA] transition-colors">
                   <p className="text-sm font-medium text-gray-700 mb-1">Contrat de location/vente</p>
-                  <p className="text-xs text-gray-400 mb-3">PDF, max 10 Mo</p>
-                  <input type="file" accept=".pdf" className="hidden" id="file-contrat"
+                  <p className="text-xs text-gray-400 mb-3">PDF, Word, ODT, max 20 Mo</p>
+                  <input type="file" accept=".pdf,.doc,.docx,.odt" className="hidden" id="file-contrat"
                     onChange={(e) => setContrat(e.target.files?.[0] ?? null)} />
                   <label htmlFor="file-contrat" className="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium"
                     style={{ backgroundColor: 'rgba(67,56,202,0.06)', color: '#4338CA' }}>
-                    Choisir un PDF
+                    Choisir un document
                   </label>
                   {contratFile && <p className="text-xs text-green-600 mt-2">✓ {contratFile.name}</p>}
                 </div>

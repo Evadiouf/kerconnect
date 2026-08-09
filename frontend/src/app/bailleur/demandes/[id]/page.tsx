@@ -380,11 +380,11 @@ export default function BailleurDemandeDetailPage() {
                       style={{ backgroundColor: '#4338CA' }}>
                       <Upload size={15} />
                       {uploadingDoc ? 'Envoi en cours…' : '📄 Envoyer le contrat (PDF)'}
-                      <input type="file" accept=".pdf" className="hidden"
+                      <input type="file" accept=".pdf,.doc,.docx,.odt" className="hidden"
                         disabled={uploadingDoc}
                         onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadContrat(demande.contrat.id, f) }} />
                     </label>
-                    <p className="text-xs text-gray-400 text-center">Format PDF uniquement · max 10 Mo</p>
+                    <p className="text-xs text-gray-400 text-center">PDF, Word, ODT acceptés · max 20 Mo</p>
                   </div>
                 )}
               </div>
