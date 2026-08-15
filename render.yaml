@@ -62,7 +62,7 @@ services:
       - key: FILESYSTEM_DISK
         value: public
       - key: CLOUDINARY_CLOUD_NAME
-        sync: false
+        value: xqyfvqqj
       - key: CLOUDINARY_API_KEY
         sync: false
       - key: CLOUDINARY_API_SECRET
