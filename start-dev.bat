@@ -7,7 +7,7 @@ echo  ╚═══════════════════════�
 echo.
 
 echo  [1/2] Demarrage du backend Laravel...
-start "KerConnect Backend (Laravel)" cmd /k "cd /d ""C:\Users\DELL INSPIRON 16\Desktop\Dossier important\Ker_connect\backend"" && php artisan serve"
+start "KerConnect Backend (Laravel)" cmd /k "cd /d ""C:\Users\DELL INSPIRON 16\Desktop\Dossier important\Ker_connect\backend"" && php -d upload_max_filesize=100M -d post_max_size=120M -d max_execution_time=300 -d max_input_time=300 -d memory_limit=256M -S 127.0.0.1:8000 -t public public/index.php"
 
 timeout /t 3 /nobreak > nul
 
