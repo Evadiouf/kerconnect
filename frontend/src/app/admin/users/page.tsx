@@ -27,6 +27,7 @@ export default function AdminUsersPage() {
   const [role,      setRole]      = useState('')
   const [page,      setPage]      = useState(1)
   const [confirmId, setConfirmId] = useState<number | null>(null)
+  const [deleteError, setDeleteError] = useState('')
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-users', search, role, page],
@@ -40,7 +41,11 @@ export default function AdminUsersPage() {
 
   const deleteUser = useMutation({
     mutationFn: (id: number) => api.delete(`/v1/admin/users/${id}`),
-    onSuccess:  () => { qc.invalidateQueries({ queryKey: ['admin-users'] }); setConfirmId(null) },
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: ['admin-users'] }); setConfirmId(null); setDeleteError('') },
+    onError:    (err: unknown) => {
+      const e = err as { response?: { data?: { message?: string } } }
+      setDeleteError(e.response?.data?.message || 'Erreur lors de la suppression. Réessayez.')
+    },
   })
 
   const users: User[] = data?.data || []
@@ -52,6 +57,13 @@ export default function AdminUsersPage() {
           <h1 className="text-2xl font-bold text-gray-900">Utilisateurs</h1>
           <span className="text-sm text-gray-500">{data?.total || 0} utilisateurs</span>
         </div>
+
+        {deleteError && (
+          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 flex items-center justify-between">
+            {deleteError}
+            <button onClick={() => setDeleteError('')} className="text-red-400 hover:text-red-600 ml-4">✕</button>
+          </div>
+        )}
 
         {/* Filtres */}
         <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex flex-wrap gap-3">
