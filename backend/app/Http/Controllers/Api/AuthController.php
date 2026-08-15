@@ -95,7 +95,7 @@ class AuthController extends Controller
             'registre_commerce'     => 'nullable|string|max:100',
             'adresse_structure'     => 'nullable|string|max:255',
             'type_bien'             => 'nullable|string|max:255',
-            'contrat_location'      => 'nullable|file|mimes:jpeg,jpg,png,pdf,mp4|max:10240',
+            'contrat_location'      => 'nullable|file|extensions:jpeg,jpg,png,pdf,mp4|max:10240',
         ]);
 
         $contratPath = null;

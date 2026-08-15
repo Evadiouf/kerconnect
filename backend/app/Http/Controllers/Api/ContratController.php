@@ -76,7 +76,7 @@ class ContratController extends Controller
     // Bailleur : envoyer le modèle de contrat (PDF)
     public function uploadModele(\Illuminate\Http\Request $request, string $id): \Illuminate\Http\JsonResponse
     {
-        $request->validate(['fichier' => 'required|file|extensions:pdf,doc,docx,odt|mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,application/zip,application/octet-stream|max:20480']);
+        $request->validate(['fichier' => 'required|file|extensions:pdf,doc,docx,odt|max:20480']);
 
         $contrat = \App\Models\Contrat::with(['locataire', 'bien:id,titre'])->where('bailleur_id', $request->user()->id)->findOrFail($id);
         $path = (new \App\Services\CloudinaryService())->upload(
@@ -112,7 +112,7 @@ class ContratController extends Controller
     // Client : uploader le contrat signé (PDF/image)
     public function uploadSigne(\Illuminate\Http\Request $request, string $id): \Illuminate\Http\JsonResponse
     {
-        $request->validate(['fichier' => 'required|file|extensions:pdf,doc,docx,jpg,jpeg,png,gif,webp,heic,heif|mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/zip,application/octet-stream,image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif|max:20480']);
+        $request->validate(['fichier' => 'required|file|extensions:pdf,doc,docx,odt,jpg,jpeg,png,gif,webp,heic,heif|max:20480']);
 
         $contrat = \App\Models\Contrat::with(['bailleur', 'locataire', 'bien:id,titre'])
             ->where('locataire_id', $request->user()->id)->findOrFail($id);

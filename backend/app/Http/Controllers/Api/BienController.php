@@ -65,9 +65,9 @@ class BienController extends Controller
             'chambres'       => 'nullable|integer|min:0',
             'salles_bain'    => 'nullable|integer|min:0',
             'equipements'    => 'nullable|array',
-            'photos.*'       => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,bmp,heic,heif,avif,tiff|max:30720',
-            'video'          => 'nullable|file|mimes:mp4,mov,avi,mkv,webm,3gp,m4v,wmv,flv,mpeg,mpg|max:102400',
-            'contrat_modele' => 'nullable|file|extensions:pdf,doc,docx,odt|mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,application/zip,application/octet-stream|max:20480',
+            'photos.*'       => 'nullable|file|extensions:jpg,jpeg,png,gif,webp,bmp,heic,heif,avif,tiff|max:30720',
+            'video'          => 'nullable|file|extensions:mp4,mov,avi,mkv,webm,3gp,m4v,wmv,flv,mpeg,mpg|max:102400',
+            'contrat_modele' => 'nullable|file|extensions:pdf,doc,docx,odt|max:20480',
         ]);
 
         // ── Vérifier la limite d'annonces actives selon le forfait
@@ -138,9 +138,9 @@ class BienController extends Controller
         $bien = Bien::where('id', $id)->where('user_id', $request->user()->id)->firstOrFail();
 
         $request->validate([
-            'photos.*'       => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,bmp,heic,heif,avif,tiff|max:30720',
-            'video'          => 'nullable|file|mimes:mp4,mov,avi,mkv,webm,3gp,m4v,wmv,flv,mpeg,mpg|max:102400',
-            'contrat_modele' => 'nullable|file|extensions:pdf,doc,docx,odt|mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,application/zip,application/octet-stream|max:20480',
+            'photos.*'       => 'nullable|file|extensions:jpg,jpeg,png,gif,webp,bmp,heic,heif,avif,tiff|max:30720',
+            'video'          => 'nullable|file|extensions:mp4,mov,avi,mkv,webm,3gp,m4v,wmv,flv,mpeg,mpg|max:102400',
+            'contrat_modele' => 'nullable|file|extensions:pdf,doc,docx,odt|max:20480',
         ]);
 
         $bien->update($request->only(['titre','type','nature','prix','caution_mois','description','adresse','ville','surface','chambres','salles_bain','equipements']));
