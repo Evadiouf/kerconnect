@@ -42,13 +42,21 @@ services:
           name: kerconnect-db
           property: password
       - key: MAIL_MAILER
-        value: resend
+        value: smtp
+      - key: MAIL_HOST
+        value: in-v3.mailjet.com
+      - key: MAIL_PORT
+        value: 2525
+      - key: MAIL_SCHEME
+        value: smtp
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
       - key: MAIL_FROM_ADDRESS
-        value: onboarding@resend.dev
+        value: contact@naratechvision.com
       - key: MAIL_FROM_NAME
         value: KerConnect
-      - key: RESEND_API_KEY
-        sync: false
       - key: SESSION_DRIVER
         value: array
       - key: VIEW_COMPILED_PATH
