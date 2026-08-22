@@ -5,7 +5,7 @@ services:
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
-    plan: free
+    plan: starter
     envVars:
       - key: APP_NAME
         value: KerConnect
@@ -83,7 +83,7 @@ services:
     rootDir: frontend
     buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
-    plan: free
+    plan: starter
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://api.kerconnect.naratechvision.com/api
