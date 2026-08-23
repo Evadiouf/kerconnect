@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'inscription'  => \App\Http\Middleware\CheckInscriptionPayee::class,
         ]);
         // Pas de statefulApi() — on utilise des Bearer tokens JWT, pas de cookies/sessions
+        // Pas de route "login" web (API pure) : évite un crash (RouteNotFoundException)
+        // quand une requête non authentifiée arrive sans header Accept: application/json.
+        $middleware->redirectGuestsTo(fn () => null);
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
