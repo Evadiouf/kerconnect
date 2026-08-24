@@ -44,9 +44,11 @@ RUN chown -R www-data:www-data storage bootstrap/cache \
 
 # Dossier temporaire nginx pour le buffering des uploads (doit appartenir à www-data,
 # sinon nginx échoue en 500 dès qu'un upload dépasse le buffer mémoire, avant même
-# d'atteindre PHP — voir client_body_temp_path dans nginx.conf.template)
-RUN mkdir -p /var/lib/nginx/tmp/client_body \
- && chown -R www-data:www-data /var/lib/nginx/tmp
+# d'atteindre PHP — voir client_body_temp_path dans nginx.conf.template).
+# Sous /tmp (déjà world-writable, comme pour /tmp/nginx.pid) pour éviter tout souci
+# hérité des permissions de /var/lib/nginx créé par le paquet Alpine.
+RUN mkdir -p /tmp/nginx_client_body \
+ && chown -R www-data:www-data /tmp/nginx_client_body
 
 # Configs Nginx, PHP et supervisor
 COPY docker/nginx.conf.template /etc/nginx/nginx.conf.template
