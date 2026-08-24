@@ -42,6 +42,12 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 RUN chown -R www-data:www-data storage bootstrap/cache \
  && chmod -R 775 storage bootstrap/cache
 
+# Dossier temporaire nginx pour le buffering des uploads (doit appartenir à www-data,
+# sinon nginx échoue en 500 dès qu'un upload dépasse le buffer mémoire, avant même
+# d'atteindre PHP — voir client_body_temp_path dans nginx.conf.template)
+RUN mkdir -p /var/lib/nginx/tmp/client_body \
+ && chown -R www-data:www-data /var/lib/nginx/tmp
+
 # Configs Nginx, PHP et supervisor
 COPY docker/nginx.conf.template /etc/nginx/nginx.conf.template
 COPY docker/php.ini /usr/local/etc/php/conf.d/kerconnect.ini
