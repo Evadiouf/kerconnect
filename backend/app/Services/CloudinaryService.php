@@ -24,15 +24,30 @@ class CloudinaryService
     // Upload un fichier et retourne l'URL Cloudinary sécurisée
     public function upload(UploadedFile $file, string $folder): string
     {
-        $result = $this->cloudinary->uploadApi()->upload(
-            $file->getRealPath(),
-            [
-                'folder'        => "kerconnect/{$folder}",
-                'resource_type' => 'auto',
-            ]
-        );
+        try {
+            $result = $this->cloudinary->uploadApi()->upload(
+                $file->getRealPath(),
+                [
+                    'folder'        => "kerconnect/{$folder}",
+                    'resource_type' => 'auto',
+                ]
+            );
 
-        return $result['secure_url'];
+            return $result['secure_url'];
+        } catch (\Throwable $e) {
+            // Log détaillé pour distinguer une erreur Cloudinary (credentials, quota, réseau)
+            // d'un autre point de panne — la réponse HTTP reste un 500 masqué en prod.
+            \Log::error('Cloudinary upload échoué', [
+                'exception' => get_class($e),
+                'message'   => $e->getMessage(),
+                'folder'    => $folder,
+                'file'      => $file->getClientOriginalName(),
+                'size'      => $file->getSize(),
+                'mime'      => $file->getMimeType(),
+            ]);
+
+            throw $e;
+        }
     }
 
     // Supprime un fichier à partir de son URL Cloudinary
