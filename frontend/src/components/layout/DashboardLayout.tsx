@@ -69,7 +69,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen]   = useState(false)
   const [mounted, setMounted]           = useState(false)
   const [notifOpen, setNotifOpen]       = useState(false)
+  const [profileOpen, setProfileOpen]   = useState(false)
   const notifRef = useRef<HTMLDivElement>(null)
+  const profileRef = useRef<HTMLDivElement>(null)
 
   const { data: notifData } = useQuery({
     queryKey: ['notifications'],
@@ -83,6 +85,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const handleClick = (e: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
         setNotifOpen(false)
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClick)
@@ -259,27 +264,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               )}
             </div>
             {/* Profil */}
-            <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-xl transition-colors">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
-                style={{ backgroundColor: '#4338CA' }}
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setProfileOpen(o => !o)}
+                className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-xl transition-colors"
               >
-                {user.name.charAt(0).toUpperCase()}
-              </div>
-              <div className="hidden md:block text-left">
-                <p className="text-sm font-semibold text-gray-900 leading-tight">{user.name}</p>
-                <p className="text-xs text-gray-400 capitalize leading-tight">{user.role}</p>
-              </div>
-              <ChevronDown size={14} className="text-gray-400 hidden md:block" />
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                  style={{ backgroundColor: '#4338CA' }}
+                >
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="hidden md:block text-left">
+                  <p className="text-sm font-semibold text-gray-900 leading-tight">{user.name}</p>
+                  <p className="text-xs text-gray-400 capitalize leading-tight">{user.role}</p>
+                </div>
+                <ChevronDown size={14} className="text-gray-400 hidden md:block" />
+              </button>
+
+              {profileOpen && (
+                <div className="absolute right-0 top-12 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 w-full px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-red-500 transition-colors"
+                  >
+                    <LogOut size={16} />
+                    Déconnexion
+                  </button>
+                </div>
+              )}
             </div>
-            {/* Déconnexion rapide */}
-            <button
-              onClick={handleLogout}
-              className="hidden md:flex items-center gap-1.5 text-gray-400 hover:text-red-500 text-sm transition-colors"
-              title="Déconnexion"
-            >
-              <LogOut size={16} />
-            </button>
           </div>
         </header>
 
