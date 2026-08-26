@@ -294,7 +294,7 @@ export default function ClientDemandeDetailPage() {
                   <div className={`rounded-xl p-3 text-xs ${contrat.fichier_contrat ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'}`}>
                     <p className="font-semibold mb-1">{contrat.fichier_contrat ? '✅' : '⏳'} Étape 1 : Modèle de contrat</p>
                     {contrat.fichier_contrat ? (
-                      <a href={`${storageBase}/${contrat.fichier_contrat}`}
+                      <a href={contrat.fichier_contrat.startsWith('http') ? contrat.fichier_contrat : `${storageBase}/${contrat.fichier_contrat}`}
                         target="_blank"
                         className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-semibold hover:opacity-90"
                         style={{ backgroundColor: '#4338CA' }}>

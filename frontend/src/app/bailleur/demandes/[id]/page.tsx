@@ -327,7 +327,7 @@ export default function BailleurDemandeDetailPage() {
                     {demande.contrat.fichier_signe_client && (
                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-700">
                         ✍️ Le client a signé et renvoyé le contrat.
-                        <a href={`${storageBase}/${demande.contrat.fichier_signe_client}`}
+                        <a href={demande.contrat.fichier_signe_client.startsWith('http') ? demande.contrat.fichier_signe_client : `${storageBase}/${demande.contrat.fichier_signe_client}`}
                           target="_blank"
                           className="block mt-1 underline font-medium">
                           Voir le document signé →

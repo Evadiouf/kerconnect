@@ -256,11 +256,11 @@ export default function BailleurPaiementsPage() {
                         <div className="flex flex-col gap-2">
                           <div className={`flex items-center gap-2 text-xs px-3 py-2 rounded-lg ${c.fichier_contrat ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-400'}`}>
                             {c.fichier_contrat ? '✅' : '⏳'} Modèle envoyé au client
-                            {c.fichier_contrat && <a href={`${storageBase}/${c.fichier_contrat}`} target="_blank" className="ml-auto underline text-green-600">Voir</a>}
+                            {c.fichier_contrat && <a href={c.fichier_contrat.startsWith('http') ? c.fichier_contrat : `${storageBase}/${c.fichier_contrat}`} target="_blank" className="ml-auto underline text-green-600">Voir</a>}
                           </div>
                           <div className={`flex items-center gap-2 text-xs px-3 py-2 rounded-lg ${c.fichier_signe_client ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-400'}`}>
                             {c.fichier_signe_client ? '✅' : '⏳'} Client a signé et renvoyé
-                            {c.fichier_signe_client && <a href={`${storageBase}/${c.fichier_signe_client}`} target="_blank" className="ml-auto underline text-green-600">Voir doc signé</a>}
+                            {c.fichier_signe_client && <a href={c.fichier_signe_client.startsWith('http') ? c.fichier_signe_client : `${storageBase}/${c.fichier_signe_client}`} target="_blank" className="ml-auto underline text-green-600">Voir doc signé</a>}
                           </div>
                           <div className={`flex items-center gap-2 text-xs px-3 py-2 rounded-lg ${c.statut === 'valide' ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-400'}`}>
                             {c.statut === 'valide' ? '✅' : '⏳'} Validé par vous → client peut payer
