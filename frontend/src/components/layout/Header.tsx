@@ -47,7 +47,7 @@ export default function Header({ transparent = false }: HeaderProps) {
 
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
-            <KerConnectLogo width={130} priority />
+            <KerConnectLogo width={64} priority />
           </Link>
 
           {/* Nav desktop */}
