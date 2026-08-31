@@ -114,8 +114,8 @@ function Spinner() {
 }
 
 export default function PaiementInscriptionPage() {
-  const router              = useRouter()
-  const { user, clearAuth } = useAuthStore()
+  const router                              = useRouter()
+  const { user, token, setAuth, clearAuth } = useAuthStore()
 
   // 'choose' → plan | 'pay' → paiement | 'waiting' → attente admin
   const [step, setStep]                 = useState<'choose' | 'pay' | 'waiting'>('choose')
@@ -170,7 +170,15 @@ export default function PaiementInscriptionPage() {
     setLoading(true)
     setError('')
     try {
-      await api.post('/v1/inscription/payer', { mode: payMode, forfait: selectedPlan.id })
+      const { data } = await api.post('/v1/inscription/payer', { mode: payMode, forfait: selectedPlan.id })
+      if (data.en_attente === false) {
+        // Upgrade immédiat (compte déjà actif) → accès direct, pas d'écran d'attente
+        if (user && token) {
+          setAuth({ ...user, forfait: selectedPlan.id as 'starter' | 'pro' | 'agence', inscription_payee: true }, token)
+        }
+        router.push(ROLE_REDIRECT[user?.role ?? 'bailleur'] ?? '/bailleur/dashboard')
+        return
+      }
       setWaitingForfait(selectedPlan.id)
       setStep('waiting')
     } catch (err: unknown) {

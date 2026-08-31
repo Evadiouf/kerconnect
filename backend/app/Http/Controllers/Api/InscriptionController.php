@@ -38,19 +38,48 @@ class InscriptionController extends Controller
             ], 422);
         }
 
-        if ($user->inscription_payee) {
-            return response()->json([
-                'message'           => "Frais d'inscription déjà réglés.",
-                'inscription_payee' => true,
-            ]);
-        }
-
         $request->validate([
             'mode'    => 'required|in:espece,cheque,wave,orange_money,carte,starter',
             'forfait' => 'required|in:starter,pro,agence',
         ]);
 
         $forfait = $request->input('forfait', 'starter');
+
+        // Utilisateur déjà inscrit et actif (ex. Starter) qui passe à Pro/Pro Max → upgrade
+        // immédiat, sans validation admin puisqu'il est déjà vérifié en base.
+        if ($user->inscription_payee && in_array($forfait, ['pro', 'agence'])) {
+            $ancienForfait = $user->forfait;
+            $forfaitLabel  = match($forfait) { 'pro' => 'Pro', default => 'Pro Max' };
+
+            $user->update([
+                'forfait'           => $forfait,
+                'forfait_expire_at' => now()->addMonth(),
+            ]);
+
+            // Notification admin pour suivi comptable — n'empêche pas l'activation si l'envoi échoue
+            try {
+                $adminEmail = config('mail.admin_email', 'contact@naratechvision.com');
+                Mail::raw(
+                    "Upgrade de forfait activé automatiquement\n\nBailleur : {$user->name} ({$user->email})\nAncien forfait : {$ancienForfait}\nNouveau forfait : {$forfaitLabel}\nMode de paiement déclaré : {$request->input('mode')}\nTéléphone : {$user->phone}\nDate : " . now()->format('d/m/Y H:i') . "\n\nActivé immédiatement (compte déjà vérifié), aucune action requise.",
+                    fn($msg) => $msg->to($adminEmail)->subject("Upgrade {$forfaitLabel} activé - {$user->name}")
+                );
+            } catch (\Exception $e) {
+                Log::warning("Notification admin upgrade non envoyée : " . $e->getMessage());
+            }
+
+            return response()->json([
+                'message'           => "Forfait {$forfaitLabel} activé immédiatement.",
+                'inscription_payee' => true,
+                'en_attente'        => false,
+            ]);
+        }
+
+        if ($user->inscription_payee) {
+            return response()->json([
+                'message'           => "Frais d'inscription déjà réglés.",
+                'inscription_payee' => true,
+            ]);
+        }
 
         // Starter gratuit → activation immédiate sans validation admin
         if ($forfait === 'starter') {
