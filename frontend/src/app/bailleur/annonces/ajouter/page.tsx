@@ -36,7 +36,6 @@ export default function AjouterAnnoncePage() {
   const [error, setError]         = useState('')
   const [photos, setPhotos]       = useState<File[]>([])
   const [video, setVideo]         = useState<File | null>(null)
-  const [contratFile, setContrat] = useState<File | null>(null)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -64,8 +63,7 @@ export default function AjouterAnnoncePage() {
       if (data.salles_bain !== undefined && data.salles_bain !== null) fd.append('salles_bain', String(data.salles_bain))
       equipements.forEach(eq => fd.append('equipements[]', eq))
       photos.forEach(photo => fd.append('photos[]', photo))
-      if (video)       fd.append('video', video)
-      if (contratFile) fd.append('contrat_modele', contratFile)
+      if (video) fd.append('video', video)
 
       await api.post('/v1/bailleur/biens', fd)
       router.push('/bailleur/annonces?success=1')
@@ -234,19 +232,6 @@ export default function AjouterAnnoncePage() {
                     Choisir une vidéo
                   </label>
                   {video && <p className="text-xs text-green-600 mt-2">✓ {video.name}</p>}
-                </div>
-
-                {/* Contrat */}
-                <div className="border-2 border-dashed border-gray-200 rounded-xl p-5 text-center hover:border-[#4338CA] transition-colors">
-                  <p className="text-sm font-medium text-gray-700 mb-1">Contrat de location/vente</p>
-                  <p className="text-xs text-gray-400 mb-3">PDF, Word, ODT, max 20 Mo</p>
-                  <input type="file" accept=".pdf,.doc,.docx,.odt" className="hidden" id="file-contrat"
-                    onChange={(e) => setContrat(e.target.files?.[0] ?? null)} />
-                  <label htmlFor="file-contrat" className="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium"
-                    style={{ backgroundColor: 'rgba(67,56,202,0.06)', color: '#4338CA' }}>
-                    Choisir un document
-                  </label>
-                  {contratFile && <p className="text-xs text-green-600 mt-2">✓ {contratFile.name}</p>}
                 </div>
 
                 <p className="text-xs text-gray-400 text-center">

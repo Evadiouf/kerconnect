@@ -67,7 +67,6 @@ class BienController extends Controller
             'equipements'    => 'nullable|array',
             'photos.*'       => 'nullable|file|extensions:jpg,jpeg,png,gif,webp,bmp,heic,heif,avif,tiff|max:30720',
             'video'          => 'nullable|file|extensions:mp4,mov,avi,mkv,webm,3gp,m4v,wmv,flv,mpeg,mpg|max:102400',
-            'contrat_modele' => 'nullable|file|extensions:pdf,doc,docx,odt|max:20480',
         ]);
 
         // ── Vérifier la limite d'annonces actives selon le forfait
@@ -113,16 +112,10 @@ class BienController extends Controller
             $videoPath = $cloudinary->upload($request->file('video'), "biens/{$bien->id}");
         }
 
-        $contratPath = null;
-        if ($request->hasFile('contrat_modele')) {
-            $contratPath = $cloudinary->upload($request->file('contrat_modele'), "biens/{$bien->id}");
-        }
-
-        if ($images || $videoPath || $contratPath) {
+        if ($images || $videoPath) {
             $bien->update([
-                'images'         => $images ?: null,
-                'video'          => $videoPath,
-                'contrat_modele' => $contratPath,
+                'images' => $images ?: null,
+                'video'  => $videoPath,
             ]);
         }
 

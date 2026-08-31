@@ -28,6 +28,7 @@ interface Bien {
   statut?: string
   created_at: string
   images_urls?: string[]
+  video?: string
   bailleur?: { id: number; name: string; phone?: string; verifie?: boolean; note_moyenne?: number; nb_avis?: number }
 }
 
@@ -255,6 +256,18 @@ export default function DetailBienPage() {
                 </div>
               </div>
             </div>
+
+            {/* ── Vidéo de présentation ── */}
+            {bien.video && (
+              <div className="mb-8">
+                <h2 className="text-lg font-bold text-gray-900 mb-3">Vidéo de présentation</h2>
+                <video
+                  src={bien.video}
+                  controls
+                  className="w-full max-h-[480px] rounded-2xl bg-black"
+                />
+              </div>
+            )}
 
             {/* ── Corps principal ── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
