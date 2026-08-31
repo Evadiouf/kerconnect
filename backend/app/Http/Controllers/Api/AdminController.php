@@ -153,12 +153,13 @@ class AdminController extends Controller
     public function updateSettings(Request $request): JsonResponse
     {
         $request->validate([
-            'commission_taux'   => 'sometimes|numeric|min:0|max:50',
-            'commission_active' => 'sometimes|in:0,1',
-            'frais_inscription' => 'sometimes|numeric|min:0',
+            'commission_taux_vente'    => 'sometimes|numeric|min:0|max:50',
+            'commission_taux_location' => 'sometimes|numeric|min:0|max:50',
+            'commission_active'        => 'sometimes|in:0,1',
+            'frais_inscription'        => 'sometimes|numeric|min:0',
         ]);
 
-        foreach ($request->only(['commission_taux', 'commission_active', 'plateforme_nom', 'plateforme_email', 'frais_inscription']) as $cle => $valeur) {
+        foreach ($request->only(['commission_taux_vente', 'commission_taux_location', 'commission_active', 'plateforme_nom', 'plateforme_email', 'frais_inscription']) as $cle => $valeur) {
             Setting::set($cle, $valeur);
         }
 
@@ -180,7 +181,8 @@ class AdminController extends Controller
             'paiements'          => $paiements,
             'total_commissions'  => $totalCommissions,
             'total_transactions' => $totalTransactions,
-            'taux_actuel'        => Setting::get('commission_taux', '5'),
+            'taux_vente'         => Setting::get('commission_taux_vente', '2'),
+            'taux_location'      => Setting::get('commission_taux_location', '5'),
         ]);
     }
 }

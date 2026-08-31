@@ -21,9 +21,9 @@ class PaiementController extends Controller
             'montant_base' => 'required|numeric|min:1',
         ]);
 
-        $contrat          = \App\Models\Contrat::with('bailleur')->findOrFail($request->contrat_id);
+        $contrat          = \App\Models\Contrat::findOrFail($request->contrat_id);
         $commissionActive = Setting::get('commission_active', '1') === '1';
-        $tauxCommission   = $commissionActive ? $contrat->bailleur->tauxCommission() : 0.0;
+        $tauxCommission   = $commissionActive ? $this->tauxCommissionPour($contrat) : 0.0;
         $montantBase      = (float) $request->montant_base;
         $commission       = round($montantBase * $tauxCommission / 100, 2);
         $montantTotal     = $montantBase + $commission;
@@ -61,10 +61,9 @@ class PaiementController extends Controller
             ], 422);
         }
 
-        // Commission payée par le client : taux selon le forfait du bailleur
+        // Commission payée par le client : taux selon la nature du contrat (vente/location)
         $commissionActive = Setting::get('commission_active', '1') === '1';
-        $contrat->loadMissing('bailleur');
-        $tauxCommission   = $commissionActive ? $contrat->bailleur->tauxCommission() : 0.0;
+        $tauxCommission   = $commissionActive ? $this->tauxCommissionPour($contrat) : 0.0;
         $montantBase      = (float) $request->montant_base;
         $cautionMontant   = (float) ($request->caution_montant ?? 0);
         // Commission sur le loyer de base uniquement
@@ -233,6 +232,7 @@ class PaiementController extends Controller
     }
 
     // ── Tous les paiements reçus par le bailleur (avec filtre mois/année pour le rapport)
+    // La commission est réservée à l'admin : masquée pour le bailleur/propriétaire.
     public function paiementsBailleur(Request $request): JsonResponse
     {
         $query = Paiement::with(['contrat.bien:id,titre', 'contrat.locataire:id,name', 'payeur:id,name,email'])
@@ -242,10 +242,13 @@ class PaiementController extends Controller
             $query->where('statut', 'confirme')
                   ->whereMonth('created_at', (int) $request->month)
                   ->whereYear('created_at', (int) $request->year);
-            return response()->json(['data' => $query->latest()->get()]);
+            $paiements = $query->latest()->get()->makeHidden(['commission_taux', 'commission_montant']);
+            return response()->json(['data' => $paiements]);
         }
 
-        return response()->json($query->latest()->paginate(20));
+        $paiements = $query->latest()->paginate(20);
+        $paiements->getCollection()->makeHidden(['commission_taux', 'commission_montant']);
+        return response()->json($paiements);
     }
 
     // ── Paiements en attente de confirmation (bailleur)
@@ -268,6 +271,14 @@ class PaiementController extends Controller
             ->latest()
             ->paginate(10);
         return response()->json($paiements);
+    }
+
+    // ── Taux de commission selon la nature du contrat (vente ou location)
+    private function tauxCommissionPour(Contrat $contrat): float
+    {
+        return $contrat->type === 'vente'
+            ? (float) Setting::get('commission_taux_vente', '2')
+            : (float) Setting::get('commission_taux_location', '5');
     }
 
     // ── Simulation PayDunya (à remplacer par vrai SDK en production)

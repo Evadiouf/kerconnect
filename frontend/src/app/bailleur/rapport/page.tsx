@@ -14,7 +14,6 @@ const MOIS = [
 interface Paiement {
   id: number
   montant: number
-  commission_montant: number
   montant_net: number
   statut: string
   mode: string
@@ -41,9 +40,7 @@ export default function BailleurRapportPage() {
 
   const filtres: Paiement[] = data?.data ?? []
 
-  const totalBrut       = filtres.reduce((s, p) => s + Number(p.montant), 0)
-  const totalCommission = filtres.reduce((s, p) => s + Number(p.commission_montant ?? 0), 0)
-  const totalNet        = filtres.reduce((s, p) => s + Number(p.montant_net ?? p.montant), 0)
+  const totalPaye = filtres.reduce((s, p) => s + Number(p.montant_net ?? p.montant), 0)
 
   const annees = Array.from({ length: 5 }, (_, i) => now.getFullYear() - i)
 
@@ -88,19 +85,11 @@ export default function BailleurRapportPage() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm print:border print:shadow-none">
-              <p className="text-xs text-gray-500 mb-1">Revenus bruts</p>
-              <p className="text-2xl font-bold text-gray-900">{totalBrut.toLocaleString('fr-FR')} FCFA</p>
-              <p className="text-xs text-gray-400 mt-1">{filtres.length} paiement(s)</p>
-            </div>
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm print:border print:shadow-none">
-              <p className="text-xs text-gray-500 mb-1">Commission plateforme</p>
-              <p className="text-2xl font-bold text-orange-500">{totalCommission.toLocaleString('fr-FR')} FCFA</p>
-            </div>
+          <div className="grid grid-cols-1 gap-4 mb-6">
             <div className="rounded-2xl p-5 shadow-sm print:border" style={{ backgroundColor: '#4338CA10', border: '1px solid #4338CA20' }}>
-              <p className="text-xs mb-1" style={{ color: '#4338CA' }}>Net reçu</p>
-              <p className="text-2xl font-bold" style={{ color: '#4338CA' }}>{totalNet.toLocaleString('fr-FR')} FCFA</p>
+              <p className="text-xs mb-1" style={{ color: '#4338CA' }}>Montant payé</p>
+              <p className="text-2xl font-bold" style={{ color: '#4338CA' }}>{totalPaye.toLocaleString('fr-FR')} FCFA</p>
+              <p className="text-xs text-gray-400 mt-1">{filtres.length} paiement(s)</p>
             </div>
           </div>
 
@@ -116,7 +105,7 @@ export default function BailleurRapportPage() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
-                    {['Bien', 'Locataire', 'Mode', 'Brut (FCFA)', 'Commission', 'Net (FCFA)', 'Date'].map(h => (
+                    {['Bien', 'Locataire', 'Mode', 'Montant payé (FCFA)', 'Date'].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>
                     ))}
                   </tr>
@@ -127,8 +116,6 @@ export default function BailleurRapportPage() {
                       <td className="px-4 py-3 font-medium text-gray-900">{p.contrat?.bien?.titre ?? '-'}</td>
                       <td className="px-4 py-3 text-gray-500">{p.contrat?.locataire?.name ?? '-'}</td>
                       <td className="px-4 py-3 text-gray-500">{MODE_LABEL[p.mode] ?? p.mode}</td>
-                      <td className="px-4 py-3 font-bold">{Number(p.montant).toLocaleString('fr-FR')}</td>
-                      <td className="px-4 py-3 text-orange-500">{Number(p.commission_montant ?? 0).toLocaleString('fr-FR')}</td>
                       <td className="px-4 py-3 font-bold" style={{ color: '#4338CA' }}>{Number(p.montant_net ?? p.montant).toLocaleString('fr-FR')}</td>
                       <td className="px-4 py-3 text-gray-400">{new Date(p.created_at).toLocaleDateString('fr-FR')}</td>
                     </tr>
@@ -137,9 +124,7 @@ export default function BailleurRapportPage() {
                 <tfoot className="bg-gray-50 border-t border-gray-200">
                   <tr>
                     <td colSpan={3} className="px-4 py-3 font-bold text-gray-700 text-sm">TOTAL</td>
-                    <td className="px-4 py-3 font-bold text-gray-900">{totalBrut.toLocaleString('fr-FR')}</td>
-                    <td className="px-4 py-3 font-bold text-orange-500">{totalCommission.toLocaleString('fr-FR')}</td>
-                    <td className="px-4 py-3 font-bold" style={{ color: '#4338CA' }}>{totalNet.toLocaleString('fr-FR')}</td>
+                    <td className="px-4 py-3 font-bold" style={{ color: '#4338CA' }}>{totalPaye.toLocaleString('fr-FR')}</td>
                     <td></td>
                   </tr>
                 </tfoot>

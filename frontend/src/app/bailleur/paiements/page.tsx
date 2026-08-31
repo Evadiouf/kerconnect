@@ -22,7 +22,7 @@ interface Contrat {
   signature_bailleur?: string | null
   signature_locataire?: string | null
   bien?: { id: number; titre: string; adresse: string; ville: string }
-  locataire?: { id: number; name: string; email: string; phone?: string }
+  locataire?: { id: number; name: string; email: string }
   paiements?: Paiement[]
 }
 
@@ -241,13 +241,6 @@ export default function BailleurPaiementsPage() {
                           <p className="font-medium text-gray-900 text-sm">{c.locataire?.name}</p>
                           <p className="text-xs text-gray-500">{c.locataire?.email}</p>
                         </div>
-                        {c.locataire?.phone && (
-                          <a href={`tel:${c.locataire.phone}`}
-                            className="ml-auto text-xs px-3 py-1.5 rounded-lg border hover:bg-gray-100"
-                            style={{ color: '#4338CA', borderColor: '#4338CA30' }}>
-                            📞 Appeler
-                          </a>
-                        )}
                       </div>
 
                       {/* Suivi du contrat */}

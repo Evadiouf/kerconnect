@@ -175,9 +175,10 @@ class ContratController extends Controller
 
     public function mesContratsRecu(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
     {
+        // Numéro du locataire masqué pour le bailleur/propriétaire — visible seulement par lui-même et l'admin
         $contrats = \App\Models\Contrat::with([
             'bien:id,titre,adresse,ville',
-            'locataire:id,name,email,phone',
+            'locataire:id,name,email',
             'paiements',
         ])
             ->where('bailleur_id', $request->user()->id)

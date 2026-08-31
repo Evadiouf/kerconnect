@@ -59,10 +59,10 @@ class DemandeController extends Controller
         return response()->json($demandes);
     }
 
-    // Bailleur : demandes reçues
+    // Bailleur : demandes reçues — le numéro du client reste masqué (visible seulement par lui-même et l'admin)
     public function demandesBailleur(Request $request): JsonResponse
     {
-        $demandes = Demande::with(['bien:id,titre,nature,prix', 'demandeur:id,name,email,phone'])
+        $demandes = Demande::with(['bien:id,titre,nature,prix', 'demandeur:id,name,email'])
             ->whereHas('bien', fn($q) => $q->where('user_id', $request->user()->id))
             ->latest()->paginate(10);
         return response()->json($demandes);
@@ -83,6 +83,11 @@ class DemandeController extends Controller
 
         if (!$isBailleurDuBien && !$isDemandeur && $user->role !== 'admin') {
             return response()->json(['message' => 'Non autorisé.'], 403);
+        }
+
+        // Numéro du client masqué pour le bailleur/propriétaire — visible seulement par le client lui-même et l'admin
+        if ($isBailleurDuBien && $user->role !== 'admin') {
+            $demande->demandeur?->makeHidden('phone');
         }
 
         return response()->json($demande);

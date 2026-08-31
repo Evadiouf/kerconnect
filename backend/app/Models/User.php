@@ -57,20 +57,6 @@ class User extends Authenticatable
     public function isBailleur(): bool     { return in_array($this->role, ['bailleur', 'proprietaire']); }
     public function isClient(): bool       { return $this->role === 'client'; }
 
-    // Taux de commission KerConnect selon le forfait actif du bailleur
-    public function tauxCommission(): float
-    {
-        $forfaitActif = $this->forfait;
-        if ($forfaitActif !== 'starter' && $this->forfait_expire_at?->isPast()) {
-            $forfaitActif = 'starter'; // forfait expiré → retour au starter
-        }
-        return match($forfaitActif) {
-            'pro'    => 4.0,
-            'agence' => 3.0,
-            default  => 5.0,
-        };
-    }
-
     public function biens()    { return $this->hasMany(Bien::class); }
     public function demandes() { return $this->hasMany(Demande::class, 'demandeur_id'); }
     public function favoris()  { return $this->hasMany(Favori::class); }

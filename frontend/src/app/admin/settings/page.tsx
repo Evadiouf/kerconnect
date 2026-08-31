@@ -8,7 +8,8 @@ import { Settings, TrendingUp, Percent } from 'lucide-react'
 
 export default function AdminSettingsPage() {
   const qc = useQueryClient()
-  const [taux,   setTaux]   = useState('5')
+  const [tauxVente,    setTauxVente]    = useState('2')
+  const [tauxLocation, setTauxLocation] = useState('5')
   const [active, setActive] = useState('1')
   const [saved,  setSaved]  = useState(false)
 
@@ -24,13 +25,18 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     if (settings) {
-      setTaux(settings.commission_taux ?? '5')
+      setTauxVente(settings.commission_taux_vente ?? '2')
+      setTauxLocation(settings.commission_taux_location ?? '5')
       setActive(settings.commission_active ?? '1')
     }
   }, [settings])
 
   const save = useMutation({
-    mutationFn: () => api.put('/v1/admin/settings', { commission_taux: taux, commission_active: active }),
+    mutationFn: () => api.put('/v1/admin/settings', {
+      commission_taux_vente:    tauxVente,
+      commission_taux_location: tauxLocation,
+      commission_active:        active,
+    }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-settings'] })
       setSaved(true)
@@ -55,21 +61,38 @@ export default function AdminSettingsPage() {
             <Percent size={18} style={{ color: '#4338CA' }} /> Commission automatique
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Taux de commission (%)
+                Vente (%)
               </label>
               <div className="flex items-center gap-3">
                 <input
                   type="number" min="0" max="50" step="0.5"
-                  value={taux} onChange={e => setTaux(e.target.value)}
+                  value={tauxVente} onChange={e => setTauxVente(e.target.value)}
                   className="w-32 px-4 py-3 border border-gray-200 rounded-xl text-lg font-bold outline-none focus:border-[#4338CA] transition-colors text-center"
                 />
                 <span className="text-2xl font-bold text-gray-400">%</span>
               </div>
               <p className="text-xs text-gray-400 mt-2">
-                Sur chaque paiement confirmé de 200 000 FCFA → commission de <strong>{Math.round(200000 * Number(taux) / 100).toLocaleString('fr-FR')} FCFA</strong>
+                Sur une vente de 200 000 FCFA → commission de <strong>{Math.round(200000 * Number(tauxVente) / 100).toLocaleString('fr-FR')} FCFA</strong>
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Location (%)
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="number" min="0" max="50" step="0.5"
+                  value={tauxLocation} onChange={e => setTauxLocation(e.target.value)}
+                  className="w-32 px-4 py-3 border border-gray-200 rounded-xl text-lg font-bold outline-none focus:border-[#4338CA] transition-colors text-center"
+                />
+                <span className="text-2xl font-bold text-gray-400">%</span>
+              </div>
+              <p className="text-xs text-gray-400 mt-2">
+                Sur un loyer confirmé de 200 000 FCFA → commission de <strong>{Math.round(200000 * Number(tauxLocation) / 100).toLocaleString('fr-FR')} FCFA</strong>
               </p>
             </div>
 
@@ -119,8 +142,10 @@ export default function AdminSettingsPage() {
               <p className="text-2xl font-bold text-indigo-700">{totalTransactions.toLocaleString('fr-FR')} FCFA</p>
             </div>
             <div className="bg-orange-50 rounded-xl p-4">
-              <p className="text-xs text-orange-600 font-medium mb-1">Taux actuel</p>
-              <p className="text-2xl font-bold text-orange-700">{settings?.commission_taux ?? taux} %</p>
+              <p className="text-xs text-orange-600 font-medium mb-1">Taux actuels</p>
+              <p className="text-2xl font-bold text-orange-700">
+                {settings?.commission_taux_vente ?? tauxVente}% vente · {settings?.commission_taux_location ?? tauxLocation}% loc.
+              </p>
             </div>
           </div>
 

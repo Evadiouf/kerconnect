@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import api from '@/lib/api'
-import { ArrowLeft, MapPin, Bed, Bath, Maximize, CheckCircle, Phone, Mail, Send, Upload, FileText } from 'lucide-react'
+import { ArrowLeft, MapPin, Bed, Bath, Maximize, CheckCircle, Mail, Send, Upload, FileText } from 'lucide-react'
 import Link from 'next/link'
 
 export default function BailleurDemandeDetailPage() {
@@ -224,10 +224,6 @@ export default function BailleurDemandeDetailPage() {
                   <span className="text-gray-400">Email</span>
                   <span className="font-medium text-gray-900">{demandeur.email ?? '-'}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Téléphone</span>
-                  <span className="font-medium text-gray-900">{demandeur.phone ?? '-'}</span>
-                </div>
               </div>
 
               {/* Adresse */}
@@ -248,12 +244,6 @@ export default function BailleurDemandeDetailPage() {
                   <a href={`mailto:${demandeur.email}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">
                     <Mail size={14} className="text-gray-400" />
                     {demandeur.email}
-                  </a>
-                )}
-                {demandeur.phone && (
-                  <a href={`tel:${demandeur.phone}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                    <Phone size={14} className="text-gray-400" />
-                    {demandeur.phone}
                   </a>
                 )}
               </div>
