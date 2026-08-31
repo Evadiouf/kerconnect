@@ -184,6 +184,12 @@ class ContratController extends Controller
             ->where('bailleur_id', $request->user()->id)
             ->latest()
             ->paginate(20);
+
+        // Commission réservée à l'admin — masquée pour le bailleur/propriétaire
+        $contrats->getCollection()->each(
+            fn($c) => $c->paiements?->makeHidden(['commission_taux', 'commission_montant'])
+        );
+
         return response()->json($contrats);
     }
 }

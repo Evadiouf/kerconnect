@@ -139,9 +139,9 @@ export default function BailleurDashboardPage() {
 
   const biens    = biensData?.data    || []
   const demandes = demandesData?.data || []
-  const paiements: { statut: string; montant: number; created_at: string }[] = paiementsData?.data || []
+  const paiements: { statut: string; montant: number; montant_net?: number; created_at: string }[] = paiementsData?.data || []
 
-  // Revenus mensuels des 6 derniers mois (paiements confirmés)
+  // Revenus mensuels des 6 derniers mois (paiements confirmés, montant net reçu par le bailleur)
   const revenusParMois = Array.from({ length: 6 }, (_, i) => {
     const d = new Date()
     d.setDate(1)
@@ -153,10 +153,10 @@ export default function BailleurDashboardPage() {
         const pd = new Date(p.created_at)
         return pd.getMonth() === d.getMonth() && pd.getFullYear() === d.getFullYear()
       })
-      .reduce((s, p) => s + Number(p.montant), 0)
+      .reduce((s, p) => s + Number(p.montant_net ?? p.montant), 0)
     return { mois, total }
   })
-  const totalRevenu = paiements.filter(p => p.statut === 'confirme').reduce((s, p) => s + Number(p.montant), 0)
+  const totalRevenu = paiements.filter(p => p.statut === 'confirme').reduce((s, p) => s + Number(p.montant_net ?? p.montant), 0)
 
   const totalBiens      = biens.length
   const biensLoues      = biens.filter((b: { statut: string }) => b.statut === 'loue').length

@@ -259,7 +259,8 @@ class PaiementController extends Controller
             ->whereIn('mode', ['espece', 'cheque'])
             ->where('statut', 'en_attente')
             ->latest()
-            ->get();
+            ->get()
+            ->makeHidden(['commission_taux', 'commission_montant']);
         return response()->json(['data' => $paiements]);
     }
 

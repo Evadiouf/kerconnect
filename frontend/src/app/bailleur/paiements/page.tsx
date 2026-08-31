@@ -9,7 +9,7 @@ import { useState } from 'react'
 import { useAuthStore } from '@/store/auth.store'
 
 interface Paiement {
-  id: number; reference: string; montant: number; mode: string
+  id: number; reference: string; montant: number; montant_net?: number; mode: string
   statut: string; created_at: string; libelle?: string
   payeur?: { name: string; email: string }
 }
@@ -91,7 +91,7 @@ export default function BailleurPaiementsPage() {
   const totalRecu = contrats
     .flatMap(c => c.paiements ?? [])
     .filter(p => p.statut === 'confirme')
-    .reduce((s, p) => s + Number(p.montant), 0)
+    .reduce((s, p) => s + Number(p.montant_net ?? p.montant), 0)
 
   return (
     <DashboardLayout>
@@ -127,7 +127,7 @@ export default function BailleurPaiementsPage() {
                 <div key={p.id} className="bg-white rounded-xl p-4 flex items-center justify-between gap-4 shadow-sm">
                   <div>
                     <p className="font-semibold text-gray-900 text-sm">
-                      {MODE_LABEL[p.mode] ?? p.mode} : {Number(p.montant).toLocaleString('fr-FR')} FCFA
+                      {MODE_LABEL[p.mode] ?? p.mode} : {Number(p.montant_net ?? p.montant).toLocaleString('fr-FR')} FCFA
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">Réf. {p.reference}</p>
                     <p className="text-xs text-gray-400">
@@ -168,7 +168,7 @@ export default function BailleurPaiementsPage() {
           <div className="space-y-4">
             {contrats.map((c) => {
               const paiementsConfirmes = (c.paiements ?? []).filter(p => p.statut === 'confirme')
-              const totalContrat = paiementsConfirmes.reduce((s, p) => s + Number(p.montant), 0)
+              const totalContrat = paiementsConfirmes.reduce((s, p) => s + Number(p.montant_net ?? p.montant), 0)
               const isOpen = expanded === c.id
 
               return (
@@ -271,7 +271,7 @@ export default function BailleurPaiementsPage() {
                             {(c.paiements ?? []).map((p) => (
                               <div key={p.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl text-sm">
                                 <div>
-                                  <p className="font-medium text-gray-900">{Number(p.montant).toLocaleString('fr-FR')} FCFA</p>
+                                  <p className="font-medium text-gray-900">{Number(p.montant_net ?? p.montant).toLocaleString('fr-FR')} FCFA</p>
                                   <p className="text-xs text-gray-400">{MODE_LABEL[p.mode] ?? p.mode} · {p.reference}</p>
                                   <p className="text-xs text-gray-400">{new Date(p.created_at).toLocaleDateString('fr-FR')}</p>
                                 </div>
