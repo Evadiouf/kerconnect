@@ -91,6 +91,12 @@ export default function BailleurDemandeDetailPage() {
     refusee:  'bg-red-100 text-red-700',
   }
 
+  const TYPE_LABELS: Record<string, string> = {
+    location: 'Location',
+    achat:    'Achat',
+    visite:   '📅 Visite',
+  }
+
   return (
     <DashboardLayout>
       <div className="max-w-7xl mx-auto space-y-6">
@@ -104,6 +110,9 @@ export default function BailleurDemandeDetailPage() {
             <h1 className="text-xl font-bold text-gray-900">Détail de la demande</h1>
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${STATUT_COLORS[demande.statut] || 'bg-gray-100 text-gray-600'}`}>
               {demande.statut}
+            </span>
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">
+              {TYPE_LABELS[demande.type] ?? demande.type}
             </span>
           </div>
         </div>
@@ -226,16 +235,21 @@ export default function BailleurDemandeDetailPage() {
                 </div>
               </div>
 
-              {/* Adresse */}
-              <div className="bg-gray-50 rounded-xl p-3 mb-3">
-                <p className="text-xs text-gray-400 mb-1">Adresse actuelle</p>
-                <p className="text-sm text-gray-700 font-medium">{demandeur.ville ?? '-'}</p>
-              </div>
+              {/* Visite souhaitée */}
+              {demande.type === 'visite' && (demande.date_visite || demande.heure_visite) && (
+                <div className="bg-indigo-50 rounded-xl p-3 mb-3">
+                  <p className="text-xs text-indigo-500 mb-1">📅 Visite souhaitée</p>
+                  <p className="text-sm text-indigo-900 font-medium">
+                    {demande.date_visite ? new Date(demande.date_visite).toLocaleDateString('fr-FR') : 'Date non précisée'}
+                    {demande.heure_visite ? ` à ${demande.heure_visite}` : ''}
+                  </p>
+                </div>
+              )}
 
-              {/* Description demandeur */}
+              {/* Message du client */}
               <div>
-                <p className="text-xs text-gray-400 mb-1.5">DESCRIPTION</p>
-                <p className="text-sm text-gray-600 leading-relaxed">{demandeur.description ?? '-'}</p>
+                <p className="text-xs text-gray-400 mb-1.5">MESSAGE</p>
+                <p className="text-sm text-gray-600 leading-relaxed">{demande.description ?? '-'}</p>
               </div>
 
               {/* Contacts directs */}

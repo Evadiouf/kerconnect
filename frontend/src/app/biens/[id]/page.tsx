@@ -139,6 +139,14 @@ export default function DetailBienPage() {
     }
   }
 
+  const handleDemandeVisite = () => {
+    if (!isAuthenticated) {
+      router.push(`/auth/login?redirect=/biens/${id}`)
+      return
+    }
+    router.push(`/client/demandes/new?bien_id=${id}&type=visite`)
+  }
+
   const prixFormate = bien
     ? bien.nature === 'location'
       ? `${Number(bien.prix).toLocaleString('fr-FR')} FCFA/mois`
@@ -475,6 +483,11 @@ export default function DetailBienPage() {
                           className="w-full py-3 rounded-xl text-white font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-60"
                           style={{ backgroundColor: '#E05C52' }}>
                           {sending ? 'Envoi...' : isAuthenticated ? 'Soumettre ma demande' : 'Se connecter pour postuler'}
+                        </button>
+                        <button onClick={handleDemandeVisite}
+                          className="w-full py-3 rounded-xl font-semibold text-sm border-2 hover:bg-gray-50 transition-colors"
+                          style={{ borderColor: '#E05C52', color: '#E05C52' }}>
+                          📅 Demander une visite
                         </button>
                       </div>
                     )
