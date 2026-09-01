@@ -18,19 +18,10 @@ function IconLinkedin() {
     </svg>
   )
 }
-function IconX() {
+function IconTiktok() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-    </svg>
-  )
-}
-function IconInstagram() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+      <path d="M16.6 5.82A4.28 4.28 0 0 1 14.86 2H12v13.9a2.5 2.5 0 1 1-2.06-2.46v-2.94a5.5 5.5 0 1 0 4.56 5.42V9.53a7.24 7.24 0 0 0 4.24 1.37V7.83a4.28 4.28 0 0 1-2.14-2.01z"/>
     </svg>
   )
 }
@@ -103,14 +94,15 @@ export default function Footer() {
             {/* Réseaux sociaux */}
             <div className="flex items-center gap-3 mt-5">
               {[
-                { icon: <IconFacebook />, href: '#', label: 'Facebook' },
-                { icon: <IconLinkedin />, href: '#', label: 'LinkedIn' },
-                { icon: <IconX />,        href: '#', label: 'X' },
-                { icon: <IconInstagram />, href: '#', label: 'Instagram' },
+                { icon: <IconFacebook />, href: 'https://www.facebook.com/share/19ZYpgqzXe/', label: 'Facebook' },
+                { icon: <IconLinkedin />, href: 'https://www.linkedin.com/company/100293130', label: 'LinkedIn' },
+                { icon: <IconTiktok />,   href: 'https://www.tiktok.com/@naratechvisionmedia?_r=1&_t=ZS-99Ii4l0568K', label: 'TikTok' },
               ].map(({ icon, href, label }) => (
                 <a
                   key={label}
                   href={href}
+                  target={href !== '#' ? '_blank' : undefined}
+                  rel={href !== '#' ? 'noopener noreferrer' : undefined}
                   aria-label={label}
                   className="w-8 h-8 rounded-full border border-gray-600 flex items-center justify-center text-gray-400 hover:text-white hover:border-white transition-colors"
                 >
